@@ -1,0 +1,56 @@
+agent_name: purchasing_agent_1
+author: bosch
+version: 0.1.0
+license: Apache-2.0
+description: ''
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  libp2p_node.log: QmNxqvhZhM3J76XgJy7x2Fw8L5dtuHnJAMBPXc8oCemeW3
+fingerprint_ignore_patterns: []
+connections:
+- fetchai/ledger:0.18.0
+- fetchai/p2p_libp2p:0.21.0
+contracts:
+- bosch/service_directory:0.1.0
+protocols:
+- fetchai/contract_api:1.0.0
+- fetchai/default:1.0.0
+- fetchai/fipa:1.0.0
+- fetchai/ledger_api:1.0.0
+- fetchai/signing:1.0.0
+- fetchai/state_update:1.0.0
+skills:
+- bosch/fipa_negotiation:0.1.0
+default_connection: fetchai/p2p_libp2p:0.21.0
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing:
+  fetchai/ledger_api:1.0.0: fetchai/ledger:0.18.0
+connection_private_key_paths:
+  fetchai: fetchai_private_key.txt
+private_key_paths:
+  ethereum: ethereum_private_key.txt
+logging_config:
+  disable_existing_loggers: false
+  version: 1
+dependencies:
+  aea-ledger-fetchai: {}
+---
+public_id: fetchai/p2p_libp2p:0.21.0
+type: connection
+config:
+  delegate_uri: 127.0.0.1:11001
+  entry_peers:
+  - /dns4/127.0.0.1/tcp/9000/p2p/16Uiu2HAm9FSYTow7HtsHVV6xgn6MfsBZ2e2StFgvdEPoP9K8XDPg
+  - /dns4/127.0.0.1/tcp/9003/p2p/16Uiu2HAm61vPTgHWt3tHCZXRRZ3wQBrcP9eK9UmZHF1aoGHiHeW4
+  local_uri: 127.0.0.1:9001
+  public_uri: 127.0.0.1:9001
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: fetchai
+  save_path: .certs/conn_cert.txt

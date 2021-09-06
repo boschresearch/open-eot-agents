@@ -1,0 +1,64 @@
+name: basic_service_discovery
+author: bosch
+version: 0.1.0
+type: skill
+description: A basic service discovery skill within manufacturing marketplace using
+  a smart contract.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmQcixkhdkywJERmAuTsvJG9bTStL6FjW7fC5mcrxwQWZD
+  behaviours.py: QmULTFjbzJxT3Ce4cfRsXxnEREF6rJBEr5wfrj7A2Q9mAk
+  dialogues.py: QmZy9Yb1N43GMRBGeCtMJdN7hfe1FH17S5PE5bwiRD6j3M
+  handlers.py: QmV2w48uY42JQLYF7btGU64mLtdawzBE13ihZU6ULdGj82
+  strategy.py: QmdsNjx9XvLRAqFxDRy9ArwnMqpTcZGiYPoyC2jb5XBGWk
+fingerprint_ignore_patterns: []
+connections:
+- fetchai/ledger:0.18.0
+contracts:
+- bosch/service_directory:0.1.0
+protocols:
+- fetchai/contract_api:1.0.0
+- fetchai/default:1.0.0
+- fetchai/ledger_api:1.0.0
+skills: []
+behaviours:
+  search:
+    args:
+      search_interval: 5
+    class_name: GenericSearchBehaviour
+handlers:
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  ledger_api:
+    args: {}
+    class_name: GenericLedgerApiHandler
+models:
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  default_dialogues:
+    args: {}
+    class_name: DefaultDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  strategy:
+    args:
+      contract_address: '0x0106851e0fe431b99b1a7C915a70bA7fFA3becC0'
+      deployer_address: '0x393d214c9a5e5ae2174C9265B6E1e00771c798b6'
+      is_ledger_tx: true
+      search_service_1:
+        id: 3D_printing_service
+        max_tx_fee: 1
+        max_unit_price: 20
+        min_quantity: 1
+      search_service_2:
+        id: 3DX_printing_service
+        max_tx_fee: 1
+        max_unit_price: 40
+        min_quantity: 1
+    class_name: GenericStrategy
+is_abstract: false
+dependencies: {}

@@ -1,0 +1,18 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Open-EoT-Agents
+Upstream-Contact: Robert Bosch GmbH <daniel.kunz@de.bosch.com>
+Source: https://github.com/boschresearch/Open-EoT-Agents
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...
+
+Files: .gitignore NOTICE *.md **/*.md **/*.txt **/*.json **/*.yaml
+Copyright: 2021 Robert Bosch GmbH
+License: Apache-2.0
+
+Files: **/vendor/**
+Copyright: 2021 fetchai
+License: Apache-2.0
