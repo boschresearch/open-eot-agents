@@ -98,7 +98,7 @@ def run_command_in_subprocess(command_line, component_project_dir):
 # i chose to use a subprocess and the provided cli instead of importing the aea,
 # because the cli is documented and i expect it to stay more stable than the python code used by the cli
 def create_aea_component_agent(component_project_dir: Path, component_name: str):
-    agent_project_name = f"{component_name}{AEA_PROJECT_SUFFIX}"
+    agent_project_name = f"{component_name}{AGENT_FOLDER_SUFFIX}"
     # TODO check if aea is installed, if not suggest running with pipenv (when it was not enabled)
     command_line = ["pipenv", "run", "aea", "create", agent_project_name]
     agent_project_dir = component_project_dir / agent_project_name
