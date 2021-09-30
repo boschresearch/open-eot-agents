@@ -7,6 +7,7 @@ from pathlib import Path
 from subprocess import Popen, CalledProcessError, PIPE, STDOUT
 from typing import Optional, List, Any
 
+MIN_PYTHON_VERSION = [3, 8]
 AGENT_FOLDER_SUFFIX = "_agent"
 AEA_PROJECT_SUFFIX = "_aea_project"
 AEA_COMPONENTS_DIRECTORY = "aea_components"
@@ -24,6 +25,13 @@ aea = {extras = ["all"], version = "*"}
 [requires]
 python_version = "3.8"
 """
+
+
+def check_python_version():
+    for i, v in enumerate(MIN_PYTHON_VERSION):
+        if  sys.version_info[i]< v:
+            print(f"At least python {'.'.join(str(p) for p in MIN_PYTHON_VERSION)} is required.")
+            sys.exit(1)
 
 
 def get_script_folder() -> Optional[Path]:
@@ -131,6 +139,7 @@ def print_how_to_continue(component_agent_dir: Path):
 
 
 def main(argv: List[Any]):
+    check_python_version()
     if len(argv) < 2:
         print("Please provide a name to create a aea project for your new aea component")
         sys.exit(1)
