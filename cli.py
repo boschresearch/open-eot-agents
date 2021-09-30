@@ -133,7 +133,9 @@ def print_how_to_continue(component_agent_dir: Path):
         f" at aea project at {component_agent_dir.parent}")
     print("Run the following, to enable its virtual environment:")
     print(f"   `cd {component_agent_dir}`")
+    print("   `alias aea=aea --registry-path $(realpath ../../../packages)`")
     print("   `pipenv shell`")
+    print("The alias tells the aea cli to use the local registry at ./packages.")
     print("Now you can create an aea component there.")
     print("See `aea scaffold` for further information.")
 
