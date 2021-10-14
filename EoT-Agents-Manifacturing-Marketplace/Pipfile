@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+aea = {extras = ["all"], version = "1.0.2"}
+aea-ledger-ethereum = "1.0.1"
+aea-ledger-fetchai = "1.0.1"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
