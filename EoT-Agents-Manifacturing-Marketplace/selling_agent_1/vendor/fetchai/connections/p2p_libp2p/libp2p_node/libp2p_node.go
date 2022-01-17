@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -37,7 +38,6 @@ import (
 
 const (
 	libp2pNodePanicError      = "LIBP2P_NODE_PANIC_ERROR"
-	libp2pNodeIgnored         = "IGNORED"
 	libp2pMultiaddrsListStart = "MULTIADDRS_LIST_START"
 	libp2pMultiaddrsListEnd   = "MULTIADDRS_LIST_END"
 )
@@ -49,12 +49,6 @@ func check(err error) {
 	if err != nil {
 		fmt.Println(libp2pNodePanicError, ":", err.Error())
 		panic(err)
-	}
-}
-
-func ignore(err error) {
-	if err != nil {
-		fmt.Println(libp2pNodeIgnored, ":", err)
 	}
 }
 
@@ -128,11 +122,16 @@ func main() {
 			opts = append(opts, dhtpeer.EnablePrometheusMonitoring(nodePortMonitoring))
 		}
 		if registrationDelay != 0 {
+			//lint:ignore ST1011 don't use unit-specific suffix "Seconds"
 			durationSeconds := time.Duration(registrationDelay)
 			opts = append(opts, dhtpeer.WithRegistrationDelay(durationSeconds*1000000*time.Microsecond))
 		}
 		if storagePath != "" {
 			opts = append(opts, dhtpeer.StoreRecordsTo(storagePath))
+		}
+
+		if len(agent.MailboxUri()) > 0 {
+			opts = append(opts, dhtpeer.EnableMailboxService(agent.MailboxUri()))
 		}
 		node, err = dhtpeer.New(opts...)
 	}
@@ -157,10 +156,10 @@ func main() {
 		for envel := range agent.Queue() {
 			envelope := envel
 			logger.Info().Msgf("received envelope from agent: %s", envelope)
-			go func() {
-				err := node.RouteEnvelope(envelope)
-				ignore(err)
-			}()
+			err := node.RouteEnvelope(envelope)
+			if err != nil {
+				logger.Error().Msgf("Route envelope error: %s", err.Error())
+			}
 		}
 	}()
 
@@ -172,6 +171,11 @@ func main() {
 	// Wait until Ctrl+C or a termination call is done.
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
+
+	// SIGTERM for k8s graceful stop support
+	signal.Notify(c, syscall.SIGTERM)
+
+	//wait for termination
 	<-c
 
 	logger.Info().Msg("node stopped")
