@@ -8,25 +8,26 @@ fingerprint:
   libp2p_node.log: QmZaCqrVm8RUM3aQkgGnjCEgu8jHEqdEL7k9piRoha7f8V
 fingerprint_ignore_patterns: []
 connections:
-- fetchai/ledger:0.18.0
-- fetchai/p2p_libp2p:0.21.0
+- fetchai/ledger:0.20.0
+- fetchai/p2p_libp2p:0.26.0
 contracts:
 - bosch/service_directory:0.1.0
 protocols:
-- fetchai/contract_api:1.0.0
-- fetchai/default:1.0.0
-- fetchai/fipa:1.0.0
-- fetchai/ledger_api:1.0.0
-- fetchai/signing:1.0.0
-- fetchai/state_update:1.0.0
+- fetchai/acn:1.1.0
+- fetchai/contract_api:1.1.0
+- fetchai/default:1.1.0
+- fetchai/fipa:1.1.0
+- fetchai/ledger_api:1.1.0
+- fetchai/signing:1.1.0
+- fetchai/state_update:1.1.0
 skills:
 - bosch/fipa_negotiation:0.1.0
-default_connection: fetchai/p2p_libp2p:0.21.0
+default_connection: fetchai/p2p_libp2p:0.26.0
 default_ledger: ethereum
 required_ledgers:
 - ethereum
 default_routing:
-  fetchai/ledger_api:1.0.0: fetchai/ledger:0.18.0
+  fetchai/ledger_api:1.1.0: fetchai/ledger:0.20.0
 connection_private_key_paths:
   fetchai: fetchai_private_key.txt
 private_key_paths:
@@ -37,7 +38,7 @@ logging_config:
 dependencies:
   aea-ledger-fetchai: {}
 ---
-public_id: fetchai/p2p_libp2p:0.21.0
+public_id: fetchai/p2p_libp2p:0.26.0
 type: connection
 config:
   delegate_uri: 127.0.0.1:11000

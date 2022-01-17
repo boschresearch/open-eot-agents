@@ -14,14 +14,14 @@ fingerprint:
   strategy.py: Qmc7jYo7pFrXVuYm5ZWDB8LtR7gY3mUp2UCC1xpJRD78Sh
 fingerprint_ignore_patterns: []
 connections:
-- fetchai/ledger:0.18.0
+- fetchai/ledger:0.20.0
 contracts:
 - bosch/service_directory:0.1.0
 protocols:
-- fetchai/contract_api:1.0.0
-- fetchai/default:1.0.0
-- fetchai/ledger_api:1.0.0
-- fetchai/signing:1.0.0
+- fetchai/contract_api:1.1.0
+- fetchai/default:1.1.0
+- fetchai/ledger_api:1.1.0
+- fetchai/signing:1.1.0
 skills: []
 behaviours:
   service_registration:
@@ -53,8 +53,8 @@ models:
     class_name: SigningDialogues
   strategy:
     args:
-      contract_address: '0x0106851e0fe431b99b1a7C915a70bA7fFA3becC0'
-      deployer_address: '0x393d214c9a5e5ae2174C9265B6E1e00771c798b6'
+      contract_address: '0xe0368eb5a80dc7b07B566de9a7209E2Df01C64d5'
+      deployer_address: '0x5FAC906D34b62615Ddd08259ED971eA4999A5d4E'
       is_ledger_tx: true
       service_1_data:
         id: 3D_printing_service
