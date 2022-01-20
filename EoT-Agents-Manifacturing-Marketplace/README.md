@@ -2,23 +2,26 @@
 
 ## Prerequisites
 
-- Installation of [Ganache](https://www.trufflesuite.com/docs/ganache/quickstart)
-- Installation of [Truffle](https://www.trufflesuite.com/docs/truffle/getting-started/installation)
-- [Fetchai](https://fetch.ai/) AEA version 1.0.0
+- Setup of smart contracts and testnet as described [here](../service-directory/Readme.md).
+- [Fetchai](https://fetch.ai/) AEA version 1.1.1
 
-## Deploy smart contract on ganache ethereum client
+## Run it out of the box
 
-- deploy the contract
-  - run the ganache client (ethereum client) either using the GUI or the console
-        ```console
-        foo@bar:~$ ganache-cli -a 2```
-  - Deploy ServiceDirectory.sol contract under folder service-directory/contracts
-        ```console
-        foo@bar:~$ truffle migrate```
+There are currently 4 agents included, two *selling_agents* and two *purchasing_agents*. These agents are already preconfigured and can be run out of the box after the testnet and smart contracts are setup as desribed in prerequisities.
+
+To run these agents the following steps has to be performed first in the *selling_agents* and then in the *purchasing agents*:
+
+````console
+  aea -s issue-certificates
+  aea -s build
+  aea -s run
+````
 
 ## Configure the AEAs
 
-- copy the ServiceDirectory contract address (0X..) on ganache into selling and purchasing AEAs' skill.yaml files under property
+The following sections are describing what needs to be done using a custom configuration.
+
+- copy the ServiceDirectory contract address (0X..) from ganache into selling and purchasing AEAs' skill.yaml files under property if not using the automated setup as described [here](../service-directory/Readme.md)
 
     ```console
     - contract_address: '0x..'```
@@ -36,7 +39,7 @@
     - fetchai: fetchai_private_key.txt```
 
 - setup the private key for ethereum ledger connection
-  - copy ethereum account private key on ganache into file ethereum_private_key.txt
+  - copy ethereum account private key from ganache into file ethereum_private_key.txt
     - if not already included, copy the key file name ethereum_private_key.txt into aea-config.yaml file under property
 
     ```console
