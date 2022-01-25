@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Setup of smart contracts and testnet as described [here](../service-directory/Readme.md).
-- [Fetchai](https://fetch.ai/) AEA version 1.1.1
+- Installation of [Fetchai](https://fetch.ai/) AEA version 1.1.0 and the needed [Ethereum ledger plugin](https://pypi.org/project/aea-ledger-ethereum/). This can be done either manually or with the provided pipenv environment ([Pipfile](Pipfile)). Using [pipenv](https://github.com/pypa/pipenv) execute `pipenv install` in this folder, where the corresponding [Pipfile](Pipfile) is located.
 
 ## Run it out of the box
 
