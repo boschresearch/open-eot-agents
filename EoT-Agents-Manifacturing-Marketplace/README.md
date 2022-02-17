@@ -4,6 +4,7 @@
 
 - Setup of smart contracts and testnet as described [here](../service-directory/Readme.md).
 - Installation of [Fetchai](https://fetch.ai/) AEA version 1.1.0 and the needed [Ethereum ledger plugin](https://pypi.org/project/aea-ledger-ethereum/). This can be done either manually or with the provided pipenv environment ([Pipfile](Pipfile)). Using [pipenv](https://github.com/pypa/pipenv) execute `pipenv install` in this folder, where the corresponding [Pipfile](Pipfile) is located.
+- Setup of local packages registry for development: fetch describes 2 approaches in the [docu](https://docs.fetch.ai/aea/development-setup/). To enable a local registry to be used in different agent implementations, a [.env](.env) file is provided which points the packages folder inside the user home .aea folder(*~/.aea/packages*). To use this folder, it needs to be created and in addition added to the global aea cli config, which is located under *~/.aea/cli_config.yaml*. There the key `registry_path: /home/<user>/.aea/packages/` has to be added.
 
 ## Run it out of the box
 
