@@ -18,12 +18,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-aea = {extras = ["all"], version = "*"}
+aea = {version = "==1.1.0", extras = ["all"]}
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
+"""
+ENVFILE_TEMPLATE = """
+PYTHONPATH=$PYTHONPATH:~/.aea/packages
 """
 
 
@@ -37,9 +40,10 @@ def check_python_version():
 def get_script_folder() -> Optional[Path]:
     script_directory = Path(__file__).resolve().parent
     local_registry_name = "packages"
-    packages_directory = script_directory / local_registry_name
+    aea_user_home = Path.home() / '.aea'
+    packages_directory = aea_user_home / local_registry_name
     if not packages_directory.is_dir() and not packages_directory.is_symlink():
-        print(f"The folder {script_directory} does not contain the '{local_registry_name}' directory.")
+        print(f"The folder {aea_user_home} does not contain the '{local_registry_name}' directory.")
         sys.exit(1)
     # TODO further sanity checks
     return script_directory
@@ -76,6 +80,14 @@ def setup_pipenv(component_project_dir: Path):
     else:
         raise FileNotFoundError(f"{pipfile} is not a file")
 
+def create_env_file(component_project_dir: Path):
+    envfile = component_project_dir / ".env"
+    if not envfile.exists():
+        print(f"creating {envfile}")
+        with open(envfile, 'w') as envfile_content:
+            envfile_content.write(ENVFILE_TEMPLATE)
+    else:
+        raise FileNotFoundError(f"Cannot create config file {envfile} . Name already in use.")
 
 def kill_pip_process_on_exit(opened_subprocess: Popen):
     # TODO kill spawned process
@@ -121,6 +133,7 @@ def scaffold_module(name: str):
     project_dir = get_script_folder()
     if project_dir is not None:
         component_project_dir = create_directories_for_module(project_dir, name)
+        create_env_file(component_project_dir)
         # TODO make updating pipenv optional
         setup_pipenv(component_project_dir)
         component_agent_dir = create_aea_component_agent(component_project_dir, name)
