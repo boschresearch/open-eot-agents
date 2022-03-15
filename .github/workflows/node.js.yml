@@ -1,0 +1,44 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Truffle
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup NodeJS 16
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16.13.2
+    - name: Show NodeJS version    
+      run: npm --version
+      
+    - name: Install Truffle
+      run: npm install truffle@5.3.3 -g
+      
+    - name: Install ganache-cli
+      run: npm install ganache --global
+    - name: Show Ganache version    
+      run: ganache-cli --version
+    
+    - name: Run ganache
+      working-directory: ./service-directory
+      run: |
+        ./start-ganache-aea.sh &
+        # give ganache a chance to start in background
+        sleep 3
+    
+    - name: Run truffle test
+      working-directory: ./service-directory
+      run: truffle test
