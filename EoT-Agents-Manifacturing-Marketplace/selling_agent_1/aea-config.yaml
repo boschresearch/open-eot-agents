@@ -28,10 +28,8 @@ required_ledgers:
 - ethereum
 default_routing:
   fetchai/ledger_api:1.1.0: fetchai/ledger:0.20.0
-connection_private_key_paths:
-  fetchai: fetchai_private_key.txt
-private_key_paths:
-  ethereum: ethereum_private_key.txt
+connection_private_key_paths: {}
+private_key_paths: {}
 logging_config:
   disable_existing_loggers: false
   version: 1
@@ -53,3 +51,10 @@ cert_requests:
   not_before: '2021-01-01'
   public_key: fetchai
   save_path: .certs/conn_cert.txt
+---
+public_id: fetchai/ledger:0.20.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://172.17.0.1:8545

@@ -30,8 +30,7 @@ default_routing:
   fetchai/ledger_api:1.1.0: fetchai/ledger:0.20.0
 connection_private_key_paths:
   fetchai: fetchai_private_key.txt
-private_key_paths:
-  ethereum: ethereum_private_key.txt
+private_key_paths: {}
 logging_config:
   disable_existing_loggers: false
   version: 1
@@ -55,3 +54,18 @@ cert_requests:
   not_before: '2021-01-01'
   public_key: fetchai
   save_path: .certs/conn_cert.txt
+---
+public_id: fetchai/ledger:0.20.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://172.17.0.1:8545
+---
+public_id: bosch/fipa_negotiation:0.1.0
+type: skill
+models:
+  strategy:
+    args:
+      contract_address: '0xB88a9CB7f012Ad4BaBea39F0CC04dD9F0e6cd5A7'
+      deployer_address: '0x9C8c99D1c21cA01437226AbFeB537411C3f70634'
