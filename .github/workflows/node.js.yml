@@ -24,11 +24,17 @@ jobs:
     - name: Show NodeJS version    
       run: npm --version
       
+    - name: Export Node Path
+      run: export NODE_PATH=/usr/lib/nodejs:/usr/share/nodejs
+
     - name: Install Truffle
       run: npm install truffle@5.3.3 -g
       
+    - name: Install babel
+      run: npm i -g babel-runtime
+
     - name: Install ganache-cli
-      run: npm install ganache --global
+      run: npm install ganache@ --global
     - name: Show Ganache version    
       run: ganache-cli --version
     
