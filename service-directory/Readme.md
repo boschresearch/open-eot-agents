@@ -29,14 +29,17 @@ Migrating/deploying to Ganache can be done using `truffle migrate`.
 
 As the agents needs to know the current address of the newly deployed [*ServiceDirectory*](contracts/ServiceDirectory.sol), this address needs to be updated in the corresponding *skill.yaml* files.
 
-This can be done in an automated way by executing [update-contract-address.sh](update-contract-address.sh) along with the already running ganache-cli instance. It will fetch the address of the deployed [*ServiceDirectory*](contracts/ServiceDirectory.sol) contract at network id 1111 and updates the corresponding *skill.yaml* files.
+This can be done in an automated way by executing [update-contract-address.sh](update-contract-address.sh) along with the already running ganache-cli instance. It will fetch the address of the deployed [*ServiceDirectory*](contracts/ServiceDirectory.sol) contract at network id 1111 and dumps the address to a file for the aea_manager.
 
-For a manual update, the corresponding *skill.yaml* files can be found in the agents under *<agent_folder>/skills/fipa_negotiation/skill.yaml*.
+For a manual update, the corresponding *aea-config.yaml* file of the agents needs to be updated in the agents folder under *<agent_folder>/aea-config.yaml*.
 There the property
 ```
-strategy:
+public_id: bosch/fipa_negotiation_(purchasing|selling):<version>
+type: skill
+models:
+  strategy:
     args:
-      contract_address: <value>
+      contract_address: <address>
 
 ```
 needs to be updated.
