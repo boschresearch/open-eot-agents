@@ -7,4 +7,4 @@
 from aea.configurations.base import PublicId
 
 
-PUBLIC_ID = PublicId.from_str("bosch/fipa_negotiation:0.1.0")
+PUBLIC_ID = PublicId.from_str("bosch/fipa_negotiation_selling:0.1.0")

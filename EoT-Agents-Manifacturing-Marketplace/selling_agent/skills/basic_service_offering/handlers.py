@@ -17,7 +17,7 @@ from packages.fetchai.protocols.default.message import DefaultMessage
 from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
 from packages.fetchai.protocols.contract_api.message import ContractApiMessage
 from packages.fetchai.protocols.signing.message import SigningMessage
-from packages.fetchai.skills.basic_service_offering.dialogues import (
+from packages.bosch.skills.basic_service_offering.dialogues import (
     DefaultDialogues,
     LedgerApiDialogue,
     LedgerApiDialogues,
@@ -106,7 +106,7 @@ class GenericLedgerApiHandler(Handler):
 
         :param ledger_api_message: the ledger api message
         """
-        #TODO: Error while trying to retrieve the ledger_id: ledger_id is not set while included within message! 
+        # TODO: Error while trying to retrieve the ledger_id: ledger_id is not set while included within message!
         self.context.logger.info("received transaction_digest from {}.".format(ledger_api_msg.sender))
 
     def _handle_error(
@@ -147,7 +147,7 @@ class ContractApiHandler(Handler):
 
     def setup(self) -> None:
         """Implement the setup for the handler."""
-        #uncomment following statement only if strategy object is used here!
+        # uncomment following statement only if strategy object is used here!
         #self.strategy = cast(GenericStrategy, self.context.strategy)
 
     def handle(self, message: Message) -> None:
@@ -243,7 +243,7 @@ class ContractApiHandler(Handler):
                 contract_api_msg, contract_api_dialogue
             )
         )
-            
+
     def _handle_invalid(
         self,
         contract_api_msg: ContractApiMessage,
@@ -372,6 +372,3 @@ class SigningHandler(Handler):
                 signing_msg.performative, signing_dialogue
             )
         )
-
-
-
