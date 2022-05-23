@@ -1,4 +1,4 @@
-name: fipa_negotiation
+name: fipa_negotiation_purchasing
 author: bosch
 version: 0.1.0
 type: skill
@@ -7,10 +7,10 @@ description: A basic service discovery skill within manufacturing marketplace us
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmPY9CAtFC9oUTiXWMXZGjaTL7CSFdSL6J8zvucufnRv3z
-  behaviours.py: Qmc1nX7uqKoqF5LTbePGkbRyRTU9WVMxkASrbao2WdV8hs
+  __init__.py: QmbkFNDGqV5gWqgoza3MAGgSPvimuLd1ybJMU2L26t12tj
+  behaviours.py: QmfRH4yDxDF4P7MFeXgDBq5A9WLCTjcjxzQbKjoBwgJRo1
   dialogues.py: QmbmtNWtkWcHiG8m9iitjhdzpHZeo1e1eehxe26ft4oCej
-  handlers.py: QmRxM4FLTZgAoQ3yaxBxjfiNojVm4JDsEvW4c3qL8Gf5rV
+  handlers.py: QmU85gHV4WbhoWBYtC2Sh58shYEJJ1xGMM2Ef1SD1eQNDE
   strategy.py: QmWwP5tvWcF9XWa9gVrqhimxFkWSKY9EGui5msSbC3LNiZ
 fingerprint_ignore_patterns: []
 connections:

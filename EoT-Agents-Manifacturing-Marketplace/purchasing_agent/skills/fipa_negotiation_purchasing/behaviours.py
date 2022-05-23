@@ -12,13 +12,13 @@ from packages.fetchai.connections.ledger.base import (
 )
 from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
 from packages.fetchai.protocols.contract_api.message import ContractApiMessage
-from packages.bosch.skills.fipa_negotiation.dialogues import (
+from packages.bosch.skills.fipa_negotiation_purchasing.dialogues import (
     FipaDialogue,
     LedgerApiDialogue,
     LedgerApiDialogues,
     ContractApiDialogues,
 )
-from packages.bosch.skills.fipa_negotiation.strategy import GenericStrategy
+from packages.bosch.skills.fipa_negotiation_purchasing.strategy import GenericStrategy
 
 
 DEFAULT_MAX_PROCESSING = 120
@@ -69,16 +69,16 @@ class GenericSearchBehaviour(TickerBehaviour):
         :return: None
         """
 
-    def _get_services_endpoints(self)-> None:
+    def _get_services_endpoints(self) -> None:
         """
         Gets service endpoints from service directory contract.
 
         :return: a list of endpoints
         """
         strategy = cast(GenericStrategy, self.context.strategy)
-        #TODO: change smart contract to allow for getting the endpoints of all requested services!
+        # TODO: change smart contract to allow for getting the endpoints of all requested services!
         services = strategy.get_services()
-        #TODO: remove the following line after fixing the issue above!
+        # TODO: remove the following line after fixing the issue above!
         service = services["search_service_1"]
         if strategy.is_ledger_tx:
             contract_api_dialogues = cast(
@@ -86,25 +86,25 @@ class GenericSearchBehaviour(TickerBehaviour):
             )
             contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
                 counterparty=LEDGER_API_ADDRESS,
-                #TODO: tried to use GET_RAW_MESSAGE instead but it turns out to be difficult 
+                # TODO: tried to use GET_RAW_MESSAGE instead but it turns out to be difficult
                 # as it expects a byte string as return value by the contract
-                performative=ContractApiMessage.Performative.GET_STATE,  
+                performative=ContractApiMessage.Performative.GET_STATE,
                 ledger_id=strategy.ledger_id,
                 contract_id=strategy.contract_id,
                 contract_address=strategy.contract_address,
-                callable="getServiceEndpoints", #TODO: should be named to getServicesEndpoints within contract.py and solidity code!
+                callable="getServiceEndpoints",  # TODO: should be named to getServicesEndpoints within contract.py and solidity code!
                 kwargs=ContractApiMessage.Kwargs(
                     {
-                        "deployer_address": self.context.agent_address, #TODO: should be set to a third party deployer address!
-                        "topic": service, #TODO: should be changed to "topics: services"
+                        "deployer_address": self.context.agent_address,  # TODO: should be set to a third party deployer address!
+                        "topic": service,  # TODO: should be changed to "topics: services"
                     }
                 )
             )
-            #TODO: the following line is only used for testing issues!
+            # TODO: the following line is only used for testing issues!
             print(contract_api_msg)
             contract_api_dialogue.terms = strategy.get_contract_terms()
             self.context.outbox.put_message(message=contract_api_msg)
-            self.context.logger.info("Getting service endpoints from contract...")   
+            self.context.logger.info("Getting service endpoints from contract...")
 
 
 class GenericTransactionBehaviour(TickerBehaviour):

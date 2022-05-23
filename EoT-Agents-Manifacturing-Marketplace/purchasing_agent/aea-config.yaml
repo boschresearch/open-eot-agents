@@ -1,4 +1,4 @@
-agent_name: purchasing_agent_1
+agent_name: purchasing_agent
 author: bosch
 version: 0.1.0
 license: Apache-2.0
@@ -21,7 +21,7 @@ protocols:
 - fetchai/signing:1.1.0
 - fetchai/state_update:1.1.0
 skills:
-- bosch/fipa_negotiation:0.1.0
+- bosch/fipa_negotiation_purchasing:0.1.0
 default_connection: fetchai/p2p_libp2p:0.26.0
 default_ledger: ethereum
 required_ledgers:
@@ -30,11 +30,24 @@ default_routing:
   fetchai/ledger_api:1.1.0: fetchai/ledger:0.20.0
 connection_private_key_paths:
   fetchai: fetchai_private_key.txt
-private_key_paths:
-  ethereum: ethereum_private_key.txt
+private_key_paths: {}
 logging_config:
-  disable_existing_loggers: false
   version: 1
+  disable_existing_loggers: False
+  formatters:
+    standard:
+      format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      level: INFO
+  loggers:
+    aea:
+      handlers:
+      - console
+      level: INFO
+      propagate: False
 dependencies:
   aea-ledger-fetchai: {}
 ---
@@ -44,7 +57,6 @@ config:
   delegate_uri: 127.0.0.1:11001
   entry_peers:
   - /dns4/127.0.0.1/tcp/9000/p2p/16Uiu2HAm9FSYTow7HtsHVV6xgn6MfsBZ2e2StFgvdEPoP9K8XDPg
-  - /dns4/127.0.0.1/tcp/9003/p2p/16Uiu2HAm61vPTgHWt3tHCZXRRZ3wQBrcP9eK9UmZHF1aoGHiHeW4
   local_uri: 127.0.0.1:9001
   public_uri: 127.0.0.1:9001
 cert_requests:
@@ -55,3 +67,18 @@ cert_requests:
   not_before: '2021-01-01'
   public_key: fetchai
   save_path: .certs/conn_cert.txt
+---
+public_id: fetchai/ledger:0.20.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://127.0.0.1:8545
+---
+public_id: bosch/fipa_negotiation_purchasing:0.1.0
+type: skill
+models:
+  strategy:
+    args:
+      contract_address: '0x0e955509aeB3555CBB4b461A67C7fEEA175AFddC'
+      deployer_address: '0x9C8c99D1c21cA01437226AbFeB537411C3f70634'

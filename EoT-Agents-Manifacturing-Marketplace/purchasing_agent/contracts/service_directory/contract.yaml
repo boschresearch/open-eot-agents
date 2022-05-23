@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmbDEukXwmzm3BRa2b8ZgcFzQe8RpD2UcoToUBD2UyHkVo
   build/ServiceDirectory.json: QmfChJXH1Wv1qXNYXDy2HsufaMgeuALz6qQWFiwHdzZbHA
-  contract.py: QmeUSPdVrtxz2EECWrryu5uzTd3MRx9K7K9BxWzXFNdeGq
+  contract.py: QmRQJaaC9s4oojvNXMp5VXRnM16UEjjefe87gYN8TvQH8R
 fingerprint_ignore_patterns: []
 class_name: ServiceDirectory
 contract_interface_paths:
