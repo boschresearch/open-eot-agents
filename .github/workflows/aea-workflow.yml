@@ -35,16 +35,9 @@ jobs:
     - name: pipenv install environment
       working-directory: ./EoT-Agents-Manifacturing-Marketplace
       run: pipenv install
-    - name: Build selling agent 1
-      working-directory: ./EoT-Agents-Manifacturing-Marketplace/selling_agent_1 
-      run: pipenv run aea -s build
-    - name: Build selling agent 2
-      working-directory: ./EoT-Agents-Manifacturing-Marketplace/selling_agent_2 
-      run: pipenv run aea -s build
-    - name: Build purchasing agent 1
-      working-directory: ./EoT-Agents-Manifacturing-Marketplace/purchasing_agent_1 
-      run: pipenv run aea -s build
-    - name: Build purchasing agent 2
-      working-directory: ./EoT-Agents-Manifacturing-Marketplace/purchasing_agent_2 
-      run: pipenv run aea -s build
-    
+    - name: Build selling agent
+      working-directory: ./EoT-Agents-Manifacturing-Marketplace/selling_agent
+      run: pipenv run aea build
+    - name: Build purchasing agent
+      working-directory: ./EoT-Agents-Manifacturing-Marketplace/purchasing_agent
+      run: pipenv run aea build
