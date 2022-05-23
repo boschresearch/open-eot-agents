@@ -8,21 +8,19 @@
 
 ## Run it out of the box
 
-There are currently 4 agents included, two *selling_agents* and two *purchasing_agents*. These agents are already preconfigured and can be run out of the box after the testnet and smart contracts are setup as desribed in prerequisities.
+To run a predefined scenario with selling agents and purchasing agents in one environment, the provided [aea_manager](aea_manager) can be used. This contains an automated way to start and configure AEA and connect them to the ganache node as well as to each other.
 
-To run these agents the following steps has to be performed first in the *selling_agents* and then in the *purchasing agents*:
+After setting up the environment as described in [Prerequisites](#prerequisites), the marketplace scenario can be started in the [aea_manager](aea_manager) folder using the following command:
 
 ````console
-  aea -s issue-certificates
-  aea -s build
-  aea -s run
+  ./setup-and-run.sh <full path to local aea registry>
 ````
 
 ## Configure the AEAs
 
 The following sections are describing what needs to be done using a custom configuration.
 
-- copy the ServiceDirectory contract address (0X..) from ganache into selling and purchasing AEAs' skill.yaml files under property if not using the automated setup as described [here](../service-directory/Readme.md)
+- copy the ServiceDirectory contract address (0X..) from ganache into selling and purchasing AEAs' aea-config.yaml files under property if not using the automated setup as described [here](../service-directory/Readme.md)
 
     ```console
     - contract_address: '0x..'```
