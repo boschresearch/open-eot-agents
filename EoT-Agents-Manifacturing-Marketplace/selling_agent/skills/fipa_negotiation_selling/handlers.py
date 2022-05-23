@@ -18,7 +18,7 @@ from packages.fetchai.protocols.fipa.message import FipaMessage
 from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
 from packages.fetchai.protocols.contract_api.message import ContractApiMessage
 from packages.fetchai.protocols.signing.message import SigningMessage
-from packages.bosch.skills.fipa_negotiation.dialogues import (
+from packages.bosch.skills.fipa_negotiation_selling.dialogues import (
     DefaultDialogues,
     FipaDialogue,
     FipaDialogues,
@@ -29,7 +29,7 @@ from packages.bosch.skills.fipa_negotiation.dialogues import (
     SigningDialogue,
     SigningDialogues,
 )
-from packages.bosch.skills.fipa_negotiation.strategy import GenericStrategy
+from packages.bosch.skills.fipa_negotiation_selling.strategy import GenericStrategy
 
 
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
@@ -77,6 +77,7 @@ class GenericFipaHandler(Handler):
 
         :return: None
         """
+
     def _handle_unidentified_dialogue(self, fipa_msg: FipaMessage) -> None:
         """
         Handle an unidentified dialogue.
@@ -95,7 +96,7 @@ class GenericFipaHandler(Handler):
             error_data={"fipa_message": fipa_msg.encode()},
         )
         self.context.outbox.put_message(message=default_msg)
-        
+
     def _handle_cfp(self, fipa_msg: FipaMessage, fipa_dialogue: FipaDialogue) -> None:
         """
         Handle the CFP.
@@ -135,7 +136,7 @@ class GenericFipaHandler(Handler):
                 performative=FipaMessage.Performative.DECLINE, target_message=fipa_msg,
             )
             self.context.outbox.put_message(message=decline_msg)
-        
+
     def _handle_decline(
         self,
         fipa_msg: FipaMessage,
@@ -157,7 +158,7 @@ class GenericFipaHandler(Handler):
         fipa_dialogues.dialogue_stats.add_dialogue_endstate(
             FipaDialogue.EndState.DECLINED_PROPOSE, fipa_dialogue.is_self_initiated
         )
-    
+
     def _handle_accept(
         self, fipa_msg: FipaMessage, fipa_dialogue: FipaDialogue
     ) -> None:
@@ -185,7 +186,7 @@ class GenericFipaHandler(Handler):
             )
         )
         self.context.outbox.put_message(message=match_accept_msg)
-    
+
     def _handle_inform(
         self, fipa_msg: FipaMessage, fipa_dialogue: FipaDialogue
     ) -> None:
@@ -251,7 +252,7 @@ class GenericFipaHandler(Handler):
                     fipa_msg.sender[-5:]
                 )
             )
-    
+
     def _handle_invalid(
         self, fipa_msg: FipaMessage, fipa_dialogue: FipaDialogue
     ) -> None:
@@ -301,7 +302,7 @@ class GenericLedgerApiHandler(Handler):
         if ledger_api_msg.performative is LedgerApiMessage.Performative.BALANCE:
             self._handle_balance(ledger_api_msg)
         elif ledger_api_msg.performative is LedgerApiMessage.Performative.TRANSACTION_DIGEST:
-            self._handle_transaction_digest(ledger_api_msg)    
+            self._handle_transaction_digest(ledger_api_msg)
         elif ledger_api_msg.performative is LedgerApiMessage.Performative.TRANSACTION_RECEIPT:
             self._handle_transaction_receipt(ledger_api_msg, ledger_api_dialogue)
         elif ledger_api_msg.performative == LedgerApiMessage.Performative.ERROR:
@@ -346,7 +347,7 @@ class GenericLedgerApiHandler(Handler):
 
         :param ledger_api_message: the ledger api message
         """
-        #TODO: Error while trying to retriebe the ledger_id: ledger_id is not set while included within message! 
+        # TODO: Error while trying to retriebe the ledger_id: ledger_id is not set while included within message!
         self.context.logger.info("received transaction_digest from {}.".format(ledger_api_msg.sender))
 
     def _handle_transaction_receipt(
@@ -436,7 +437,7 @@ class ContractApiHandler(Handler):
 
     def setup(self) -> None:
         """Implement the setup for the handler."""
-        #uncomment following statement only if strategy object is used here!
+        # uncomment following statement only if strategy object is used here!
         #self.strategy = cast(GenericStrategy, self.context.strategy)
 
     def handle(self, message: Message) -> None:
@@ -465,7 +466,7 @@ class ContractApiHandler(Handler):
             self._handle_raw_transaction(contract_api_msg, contract_api_dialogue)
         elif contract_api_msg.performative == ContractApiMessage.Performative.ERROR:
             self._handle_error(contract_api_msg, contract_api_dialogue)
-        #elif contract_api_msg.performative == ContractApiMessage.Performative.STATE:
+        # elif contract_api_msg.performative == ContractApiMessage.Performative.STATE:
         #    self._handle_state(contract_api_msg, contract_api_dialogue)
         else:
             self._handle_invalid(contract_api_msg, contract_api_dialogue)
@@ -534,7 +535,7 @@ class ContractApiHandler(Handler):
                 contract_api_msg, contract_api_dialogue
             )
         )
-            
+
     def _handle_invalid(
         self,
         contract_api_msg: ContractApiMessage,
@@ -663,7 +664,3 @@ class SigningHandler(Handler):
                 signing_msg.performative, signing_dialogue
             )
         )
-
-
-
-

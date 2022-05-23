@@ -18,7 +18,7 @@ from aea_ledger_ethereum.ethereum import EthereumApi
 
 class ServiceDirectory(Contract):
     """The contract class as interface to a smart contract."""
-    
+
     PUBLIC_ID = PublicId.from_str("bosch/service_directory:0.1.0")
 
     def addServices(
@@ -54,7 +54,7 @@ class ServiceDirectory(Contract):
                 }
             )
             #print("This is the contract TX:")
-            #print(tx)
+            # print(tx)
             return tx
 
     def removeServices(
@@ -88,6 +88,33 @@ class ServiceDirectory(Contract):
                 }
             )
             #print("This is the contract TX:")
-            #print(type(tx))
-            #print(tx)
+            # print(type(tx))
+            # print(tx)
             return tx
+
+    def getServiceEndpoints(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: Address,
+        deployer_address: Address,
+        topic,
+        data: Optional[bytes] = b"",
+        gas: int = 300000,
+    ) -> Dict[str, Any]:
+        """
+        Get the service endpoints.
+
+        :param ledger_api: the ledger API
+        :param contract_address: the address of the contract
+        :param deployer_address: the address of the deployer
+        :param topic: the service topic to add
+        :param data: the data to include in the transaction
+        :param gas: the gas to be used
+        :return: the service endpoint
+        """
+        if ledger_api.identifier == EthereumApi.identifier:
+            nonce = ledger_api.api.eth.getTransactionCount(deployer_address)
+            instance = cls.get_instance(ledger_api, contract_address)
+            endpoints = instance.functions.getServiceEndpoints(topic).call()
+            result = {topic: endpoints}
+            return {"topic": result}

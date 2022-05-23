@@ -1,4 +1,4 @@
-name: fipa_negotiation
+name: fipa_negotiation_selling
 author: bosch
 version: 0.1.0
 type: skill
@@ -6,10 +6,10 @@ description: A basic fipa negotiation behaviour within manufacturing marketplace
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmPY9CAtFC9oUTiXWMXZGjaTL7CSFdSL6J8zvucufnRv3z
-  behaviours.py: QmXy8xf7rFdhyYXVAHZHx8PgocpAVBSK3mP3S3QG5HKc79
+  __init__.py: QmNobRqtqFK6ufupkPbVrzhDHDEvPNzxYsC3mGaqkrDNVk
+  behaviours.py: QmPd1joev3s3Dai9L3XPRAqxG3yZe7bBhKknggtPFCe5a9
   dialogues.py: QmW5Nc8Scx6EANszSiVrh59wpHWHav1Y3Hze2PbZMbbt8T
-  handlers.py: QmQWuG2zQ8UppHutHmbdvawDqgTYUEFa1EJx53yFndFzQE
+  handlers.py: QmaHf8mEgM3sAoBru8mhUHw94Td4xktN74rjs41zXnhFdr
   strategy.py: QmQwNBVPQfWsxhzJFbSCz9sskfj6bN3FEfRR9jj4bLMLGE
 fingerprint_ignore_patterns: []
 connections:

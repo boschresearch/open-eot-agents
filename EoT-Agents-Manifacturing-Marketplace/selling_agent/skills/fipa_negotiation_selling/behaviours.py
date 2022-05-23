@@ -11,11 +11,11 @@ from packages.fetchai.connections.ledger.base import (
 )
 from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
 from packages.fetchai.protocols.contract_api.message import ContractApiMessage
-from packages.bosch.skills.fipa_negotiation.dialogues import (
+from packages.bosch.skills.fipa_negotiation_selling.dialogues import (
     LedgerApiDialogues,
     ContractApiDialogues,
 )
-from packages.bosch.skills.fipa_negotiation.strategy import GenericStrategy
+from packages.bosch.skills.fipa_negotiation_selling.strategy import GenericStrategy
 
 
 DEFAULT_SERVICES_INTERVAL = 60.0
@@ -31,7 +31,7 @@ class GenericServiceRegistrationBehaviour(TickerBehaviour):
             "services_interval", DEFAULT_SERVICES_INTERVAL
         )  # type: int
         super().__init__(tick_interval=services_interval, **kwargs)
-        
+
     def setup(self) -> None:
         """
         Implement the setup.
@@ -51,9 +51,9 @@ class GenericServiceRegistrationBehaviour(TickerBehaviour):
             )
             self.context.outbox.put_message(message=ledger_api_msg)
         self._add_services()
-        #TODO: the fllowing line should be removed from here as used only for testing issues!
-        #self._remove_services()
-        
+        # TODO: the fllowing line should be removed from here as used only for testing issues!
+        # self._remove_services()
+
     def act(self) -> None:
         """
         Implement the act.
@@ -67,10 +67,10 @@ class GenericServiceRegistrationBehaviour(TickerBehaviour):
 
         :return: None
         """
-        #TODO: should be discussed with fetchai:
-        #Figure out where to call remove_services()! 
-        #cannot call remove services here as agent is down before handling message interaction!
-        #self._remove_services()
+        # TODO: should be discussed with fetchai:
+        # Figure out where to call remove_services()!
+        # cannot call remove services here as agent is down before handling message interaction!
+        # self._remove_services()
 
     def _add_services(self) -> None:
         """
@@ -93,20 +93,20 @@ class GenericServiceRegistrationBehaviour(TickerBehaviour):
                 callable="addServices",
                 kwargs=ContractApiMessage.Kwargs(
                     {
-                        #TODO: should be discussed with fetchai on how to use third party deployed contract:
-                        #It seems that the one who is allowed to change 
-                        #the contract state must be set to contract deployer!
-                        "deployer_address": self.context.agent_address, 
+                        # TODO: should be discussed with fetchai on how to use third party deployed contract:
+                        # It seems that the one who is allowed to change
+                        # the contract state must be set to contract deployer!
+                        "deployer_address": self.context.agent_address,
                         "topics": services,
                         "endpoint": self.context.agent_address,
                     }
                 )
             )
-            #TODO: the following line is only used for testing issues!
+            # TODO: the following line is only used for testing issues!
             print(contract_api_msg)
             contract_api_dialogue.terms = strategy.get_contract_terms()
             self.context.outbox.put_message(message=contract_api_msg)
-            self.context.logger.info("Adding services to contract...")   
+            self.context.logger.info("Adding services to contract...")
 
     def _remove_services(self) -> None:
         """
@@ -129,15 +129,15 @@ class GenericServiceRegistrationBehaviour(TickerBehaviour):
                 callable="removeServices",
                 kwargs=ContractApiMessage.Kwargs(
                     {
-                        #TODO: should be discussed with fetchai on how to use third party deployed contract:
-                        #It seems that the one who is allowed to change 
-                        #the contract state must be set to contract deployer!
+                        # TODO: should be discussed with fetchai on how to use third party deployed contract:
+                        # It seems that the one who is allowed to change
+                        # the contract state must be set to contract deployer!
                         "deployer_address": self.context.agent_address,
                         "topics": services,
                     }
                 )
             )
-            #TODO: the following line is only used for testing issues!
+            # TODO: the following line is only used for testing issues!
             print(contract_api_msg)
             contract_api_dialogue.terms = strategy.get_contract_terms()
             self.context.outbox.put_message(message=contract_api_msg)
