@@ -18,8 +18,8 @@ from packages.fetchai.protocols.fipa.message import FipaMessage
 from packages.fetchai.protocols.ledger_api.message import LedgerApiMessage
 from packages.fetchai.protocols.contract_api.message import ContractApiMessage
 from packages.fetchai.protocols.signing.message import SigningMessage
-from packages.bosch.skills.fipa_negotiation.behaviours import GenericTransactionBehaviour
-from packages.bosch.skills.fipa_negotiation.dialogues import (
+from packages.bosch.skills.fipa_negotiation_purchasing.behaviours import GenericTransactionBehaviour
+from packages.bosch.skills.fipa_negotiation_purchasing.dialogues import (
     DefaultDialogues,
     FipaDialogue,
     FipaDialogues,
@@ -30,7 +30,7 @@ from packages.bosch.skills.fipa_negotiation.dialogues import (
     SigningDialogue,
     SigningDialogues,
 )
-from packages.bosch.skills.fipa_negotiation.strategy import GenericStrategy
+from packages.bosch.skills.fipa_negotiation_purchasing.strategy import GenericStrategy
 
 
 LEDGER_API_ADDRESS = str(LEDGER_CONNECTION_PUBLIC_ID)
@@ -82,7 +82,7 @@ class GenericFipaHandler(Handler):
 
         :return: None
         """
-    
+
     def _handle_unidentified_dialogue(self, fipa_msg: FipaMessage) -> None:
         """
         Handle an unidentified dialogue.
@@ -678,15 +678,15 @@ class ContractApiHandler(Handler):
         """
         strategy = cast(GenericStrategy, self.context.strategy)
         self.context.logger.info("received state={}".format(contract_api_msg))
-        #TODO: define better data structure with multiple services and endpoints! 
+        # TODO: define better data structure with multiple services and endpoints!
         if (len(contract_api_msg.state.body['topic']["3D_printing_service"]) == 0):
-            self.context.logger.info("No endpoints found for requested services, continue searching...")  
+            self.context.logger.info("No endpoints found for requested services, continue searching...")
             strategy.is_searching = True
         else:
             strategy.is_searching = False
             counterparties = contract_api_msg.state.body['topic']["3D_printing_service"]
-            self.context.logger.info("found agents={}.".format(counterparties))              
-            #Fipa negotiation starts here: send fipa CFP message to counterparties...
+            self.context.logger.info("found agents={}.".format(counterparties))
+            # Fipa negotiation starts here: send fipa CFP message to counterparties...
             query = strategy.get_service_query()
             fipa_dialogues = cast(FipaDialogues, self.context.fipa_dialogues)
             for counterparty in counterparties:
@@ -713,7 +713,7 @@ class ContractApiHandler(Handler):
                 contract_api_msg, contract_api_dialogue
             )
         )
-            
+
     def _handle_invalid(
         self,
         contract_api_msg: ContractApiMessage,
