@@ -36,9 +36,8 @@ contract TestServiceDirectory {
         servDir.addService(topic, endpoint);
         //checking new endpoint
         result = servDir.getServiceEndpoints(topic);
-        Assert.equal(result.length, 2, "2 entry should be existent");
+        Assert.equal(result.length, 1, "1 entry should be existent");
         Assert.equal(result[0], endpoint, "endpoint value is wrong");
-        Assert.equal(result[1], endpoint, "endpoint value is wrong");
     }
 
     function testAddServices() public {
@@ -63,16 +62,17 @@ contract TestServiceDirectory {
         string[] memory topic = new string[](1);
         topic[0] = "testtopic1";
         string memory endpoint = "myendpoint1";
+        string memory endpoint2 = "myendpoint2";
         string[] memory result = servDir.getServiceEndpoints(topic[0]);
         Assert.equal(result.length, 0, "should be empty");
         // adding new endpoint to topic
         servDir.addServices(topic, endpoint);
-        servDir.addServices(topic, endpoint);
+        servDir.addServices(topic, endpoint2);
         //checking new endpoint
         result = servDir.getServiceEndpoints(topic[0]);
         Assert.equal(result.length, 2, "2 entry should be existent");
         Assert.equal(result[0], endpoint, "endpoint value is wrong");
-        Assert.equal(result[1], endpoint, "endpoint value is wrong");
+        Assert.equal(result[1], endpoint2, "endpoint value is wrong");
     }
 
     function testRemoveService() public {
@@ -182,7 +182,7 @@ contract TestServiceDirectory {
         Assert.equal(results.length, 2, "2 entry should be existent");
         Assert.equal(results[0][0], endpoint, "added endpoint value is wrong");
         Assert.equal(results[1][0], endpoint, "added endpoint value is wrong");
-        
+
         string memory endpoint2 = "myendpoint2";
         string[] memory topic2 = new string[](3);
         topic2[0] = "testtopic2";

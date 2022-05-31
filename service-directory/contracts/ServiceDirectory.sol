@@ -14,23 +14,42 @@ contract ServiceDirectory {
 
     event ServiceAdded(address owner, string topic, string endpoint);
     event ServiceDeleted(address owner, string topic, string[] endpoint);
+    event ServiceAlreadyExistent(address owner, string topic, string endpoint);
 
     constructor() {}
 
     function addService(string calldata topic, string calldata endpoint)
         public
     {
-        topicMappings[topic].push(Service(msg.sender, endpoint));
-        emit ServiceAdded(msg.sender, topic, endpoint);
+        //only add service endpoint if not already existent
+        bool isServiceExistent = false;
+        Service[] storage services = topicMappings[topic];
+        for (uint256 index = 0; index < services.length; index++) {
+            if (
+                keccak256(abi.encodePacked(services[index].owner)) ==
+                keccak256(abi.encodePacked(msg.sender)) &&
+                keccak256(bytes(services[index].endpoint)) ==
+                keccak256(bytes(endpoint))
+            ) {
+                isServiceExistent = true;
+                break;
+            }
+        }
+        if (!isServiceExistent) {
+            topicMappings[topic].push(Service(msg.sender, endpoint));
+            emit ServiceAdded(msg.sender, topic, endpoint);
+        } else {
+            emit ServiceAlreadyExistent(msg.sender, topic, endpoint);
+        }
     }
 
     function addServices(string[] calldata topics, string calldata endpoint)
         public
     {
         for (uint256 index = 0; index < topics.length; index++) {
-           addService(topics[index], endpoint); 
+            addService(topics[index], endpoint);
         }
-    } 
+    }
 
     function getServiceEndpoints(string calldata topic)
         public
@@ -66,7 +85,11 @@ contract ServiceDirectory {
             if (services[ii].owner == msg.sender) {
                 endpoints[ii] = services[ii].endpoint;
                 removeServiceFromArray(services, ii);
-                if (services.length > 0 && ii == services.length-1 && services[ii].owner == msg.sender) {
+                if (
+                    services.length > 0 &&
+                    ii == services.length - 1 &&
+                    services[ii].owner == msg.sender
+                ) {
                     endpoints[ii] = services[ii].endpoint;
                     removeServiceFromArray(services, ii);
                 }
