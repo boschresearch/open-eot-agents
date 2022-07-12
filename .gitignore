@@ -1,4 +1,7 @@
 **/libp2p_node.log
 **/.build
 **/.certs
+**/*.pyc
 .idea
+EoT-Agents-Manifacturing-Marketplace/aea_manager/mam
+EoT-Agents-Manifacturing-Marketplace/aea_manager/contract_address.txt

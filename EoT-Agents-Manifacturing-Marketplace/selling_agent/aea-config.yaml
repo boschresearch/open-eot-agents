@@ -1,0 +1,83 @@
+agent_name: selling_agent
+author: bosch
+version: 0.1.0
+license: Apache-2.0
+description: ''
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  libp2p_node.log: QmZaCqrVm8RUM3aQkgGnjCEgu8jHEqdEL7k9piRoha7f8V
+fingerprint_ignore_patterns: []
+connections:
+- fetchai/ledger:0.20.0
+- fetchai/p2p_libp2p:0.26.0
+contracts:
+- bosch/service_directory:0.1.0
+protocols:
+- fetchai/acn:1.1.0
+- fetchai/contract_api:1.1.0
+- fetchai/default:1.1.0
+- fetchai/fipa:1.1.0
+- fetchai/ledger_api:1.1.0
+- fetchai/signing:1.1.0
+- fetchai/state_update:1.1.0
+skills:
+- bosch/fipa_negotiation_selling:0.1.0
+default_connection: fetchai/p2p_libp2p:0.26.0
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing:
+  fetchai/ledger_api:1.1.0: fetchai/ledger:0.20.0
+connection_private_key_paths:
+  fetchai: fetchai_private_key.txt
+private_key_paths: {}
+logging_config:
+  version: 1
+  disable_existing_loggers: False
+  formatters:
+    standard:
+      format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      level: INFO
+  loggers:
+    aea:
+      handlers:
+      - console
+      level: INFO
+      propagate: False
+dependencies:
+  aea-ledger-fetchai: {}
+---
+public_id: fetchai/p2p_libp2p:0.26.0
+type: connection
+config:
+  delegate_uri: 127.0.0.1:11000
+  entry_peers: []
+  local_uri: 127.0.0.1:9000
+  public_uri: 127.0.0.1:9000
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: fetchai
+  save_path: .certs/conn_cert.txt
+---
+public_id: fetchai/ledger:0.20.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://127.0.0.1:8545
+---
+public_id: bosch/fipa_negotiation_selling:0.1.0
+type: skill
+models:
+  strategy:
+    args:
+      contract_address: '0x0e955509aeB3555CBB4b461A67C7fEEA175AFddC'
+      deployer_address: '0x9C8c99D1c21cA01437226AbFeB537411C3f70634'

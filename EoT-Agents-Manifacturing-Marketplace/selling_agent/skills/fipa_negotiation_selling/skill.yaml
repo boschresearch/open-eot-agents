@@ -1,0 +1,91 @@
+name: fipa_negotiation_selling
+author: bosch
+version: 0.1.0
+type: skill
+description: A basic fipa negotiation behaviour within manufacturing marketplace.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmNobRqtqFK6ufupkPbVrzhDHDEvPNzxYsC3mGaqkrDNVk
+  behaviours.py: QmPd1joev3s3Dai9L3XPRAqxG3yZe7bBhKknggtPFCe5a9
+  dialogues.py: QmW5Nc8Scx6EANszSiVrh59wpHWHav1Y3Hze2PbZMbbt8T
+  handlers.py: QmaHf8mEgM3sAoBru8mhUHw94Td4xktN74rjs41zXnhFdr
+  strategy.py: QmQwNBVPQfWsxhzJFbSCz9sskfj6bN3FEfRR9jj4bLMLGE
+fingerprint_ignore_patterns: []
+connections:
+- fetchai/ledger:0.20.0
+contracts:
+- bosch/service_directory:0.1.0
+protocols:
+- fetchai/contract_api:1.1.0
+- fetchai/default:1.1.0
+- fetchai/fipa:1.1.0
+- fetchai/ledger_api:1.1.0
+- fetchai/signing:1.1.0
+skills: []
+behaviours:
+  service_registration:
+    args:
+      services_interval: 20
+    class_name: GenericServiceRegistrationBehaviour
+handlers:
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  fipa:
+    args: {}
+    class_name: GenericFipaHandler
+  ledger_api:
+    args: {}
+    class_name: GenericLedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  default_dialogues:
+    args: {}
+    class_name: DefaultDialogues
+  fipa_dialogues:
+    args: {}
+    class_name: FipaDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  strategy:
+    args:
+      contract_address: '0xe0368eb5a80dc7b07B566de9a7209E2Df01C64d5'
+      deployer_address: '0x5FAC906D34b62615Ddd08259ED971eA4999A5d4E'
+      is_ledger_tx: true
+      service_1_data:
+        id: 3D_printing_service
+        material_cost: 5000000
+        usage_cost: 1000000
+        machine_cost: 1000000
+        personnel: 4
+        cut: 0.1
+        service_query:
+          key: seller_service
+          value: 3D_printing_service
+        data_for_sale:
+          printing: 3D
+      service_2_data:
+        id: 3DX_printing_service
+        material_cost: 70
+        usage_cost: 40
+        machine_cost: 30
+        personnel: 6
+        cut: 0.1
+        service_query:
+          key: seller_service
+          value: 3DX_printing_service
+        data_for_sale:
+          printing: 3DX
+    class_name: GenericStrategy
+is_abstract: false
+dependencies: {}

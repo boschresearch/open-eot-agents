@@ -1,0 +1,16 @@
+name: service_directory
+author: bosch
+version: 0.1.0
+type: contract
+description: A contract to provide and remove services.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmTvGXuMNUW5xf879DAb1QjxYmZ9FGMcViacR3UXmErGws
+  build/ServiceDirectory.json: QmfChJXH1Wv1qXNYXDy2HsufaMgeuALz6qQWFiwHdzZbHA
+  contract.py: QmRQJaaC9s4oojvNXMp5VXRnM16UEjjefe87gYN8TvQH8R
+fingerprint_ignore_patterns: []
+class_name: ServiceDirectory
+contract_interface_paths:
+  ethereum: build/ServiceDirectory.json
+dependencies: {}
