@@ -1,0 +1,48 @@
+agent_name: perun_node_agent
+author: bosch
+version: 0.1.0
+license: Apache-2.0
+description: ''
+aea_version: '>=1.1.0, <2.0.0'
+fingerprint: {}
+fingerprint_ignore_patterns: []
+connections:
+- bosch/perun_node:0.1.0
+contracts: []
+protocols:
+- bosch/perun_grpc:0.1.0
+- fetchai/default:1.1.0
+- fetchai/signing:1.1.0
+- fetchai/state_update:1.1.0
+skills:
+- bosch/perun:0.1.0
+default_ledger: fetchai
+required_ledgers:
+- fetchai
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths:
+  fetchai: fetchai_private_key.txt
+logging_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+  handlers:
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      level: INFO
+  loggers:
+    aea:
+      handlers:
+      - console
+      level: INFO
+    packages.bosch.connections.perun_node:
+      handlers:
+      - console
+      level: INFO
+dependencies:
+  aea-ledger-fetchai: {}
+default_connection: null

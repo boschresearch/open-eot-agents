@@ -1,0 +1,26 @@
+name: perun_node
+author: bosch
+version: 0.1.0
+type: connection
+description: The scaffold connection provides a scaffold for a connection to be implemented
+  by the developer.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmeQzikLFqQFUdcxjzwgqzYcVu6toe8xEeo1LNAmsWgQzX
+  connection.py: QmcWpZMazfxBqCGQra34tZxsDhnnrUuFDZSVriWmo6Df1J
+  readme.md: Qmdt71SaCCwAG1c24VktXDm4pxgUBiPMg4bWfUTiqorypf
+  session.py: QmZcC9qhYwfULVSMydRMQ953JmkhGFPAQDGM4kqiJYci6H
+fingerprint_ignore_patterns: []
+connections: []
+protocols:
+- bosch/perun_grpc:0.1.0
+class_name: PerunNodeConnection
+config:
+  host: 127.0.0.1
+  port: 50001
+excluded_protocols: []
+restricted_to_protocols: []
+dependencies: {}
+is_abstract: false
+cert_requests: []

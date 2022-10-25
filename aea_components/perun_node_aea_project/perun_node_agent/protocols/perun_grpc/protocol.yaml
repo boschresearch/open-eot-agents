@@ -1,0 +1,20 @@
+name: perun_grpc
+author: bosch
+version: 0.1.0
+protocol_specification_id: bosch/perun_grpc:0.1.0
+type: protocol
+description: A protocol for Perun GRPC requests and responses.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmeGTcn6PcWEb2w5rrsmbnt79kN6BefjxazVGqE9aaQ9HB
+  __init__.py: QmcfrPSHSi8Hezof1LTBM8pB2NfJgAaJiKznEBruD31SDJ
+  dialogues.py: QmUpKSjGmroUH1uz7Td9GYLPAedgTL77rABZxCi2QEeijf
+  grpc_message.py: QmTk7k8m7Gmbr2egfGPbAy87kJ1mqiU4maTPQXszjrqUDn
+  message.py: QmUQ2Ujs4MspmNq8XBPpY9M3nophGVJbBPhQRZMoUE7NJj
+  perun_grpc.proto: QmfF7Geu8LDvCSfNda5FU66Ksd7vN4zLDCiHVxodrHVU4t
+  perun_grpc_pb2.py: QmZm117MyeDxcNpyYQ68jUhfojesSjqs1JNvWd3M4mR7ii
+  serialization.py: QmTEWcfajJPVud78A851RpDPjWoGoyNK866oLXDBUR1szj
+fingerprint_ignore_patterns: []
+dependencies:
+  protobuf: {}
