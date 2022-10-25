@@ -1,0 +1,26 @@
+---
+name: perun_grpc
+author: bosch
+version: 0.1.0
+description: A protocol for Perun GRPC requests and responses.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+protocol_specification_id: bosch/perun_grpc:0.1.0
+speech_acts:
+  request:
+    type: pt:str
+    content: pt:bytes
+  response:
+    type: pt:str
+    content: pt:bytes
+...
+---
+initiation: [request]
+reply:
+  request: [response]
+  response: []
+termination: [response]
+roles: {client, server}
+end_states: [successful]
+keep_terminal_state_dialogues: false
+...

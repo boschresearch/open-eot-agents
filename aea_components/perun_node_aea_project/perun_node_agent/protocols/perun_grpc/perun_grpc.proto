@@ -1,0 +1,27 @@
+// Copyright (c) 2022 - for information on the respective copyright owner see the NOTICE file and/or the repository https://github.com/boschresearch/open-eot-agents.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+package aea.bosch.perun_grpc.v0_1_0;
+
+message PerunGrpcMessage{
+
+  // Performatives and contents
+  message Request_Performative{
+    string type = 1;
+    bytes content = 2;
+  }
+
+  message Response_Performative{
+    string type = 1;
+    bytes content = 2;
+  }
+
+
+  oneof performative{
+    Request_Performative request = 5;
+    Response_Performative response = 6;
+  }
+}
