@@ -9,7 +9,7 @@ from typing import Any, cast
 from aea.skills.behaviours import OneShotBehaviour, TickerBehaviour
 from packages.bosch.skills.perun.dialogues import PerunDialogues
 from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage
-from packages.bosch.protocols.perun_grpc.grpc_message import CloseSessionReq, OpenSessionReq
+from packages.bosch.protocols.perun_grpc.grpc_message import CloseSessionReq, GetPeerIdReq, OpenSessionReq
 
 PERUN_CONNECTION_ID = "bosch/perun_node:0.1.0"
 
@@ -51,6 +51,7 @@ class PerunCloseSessionBehaviour(OneShotBehaviour):
     def __init__(self, **kwargs: Any) -> None:
         self.perun_connection: str = cast(str, kwargs.pop("connection", PERUN_CONNECTION_ID))
         self.perun_session_id: str = cast(str, kwargs.pop("session_id", None))
+        self.perun_force_close: str = cast(str, kwargs.pop("force_close", True))
         super().__init__(**kwargs)
 
     def setup(self) -> None:
@@ -60,13 +61,12 @@ class PerunCloseSessionBehaviour(OneShotBehaviour):
             raise ValueError("No session id is given to close!")
 
     def act(self) -> None:
-        self.context.logger.info("Creating request to open close session with session_id {}".format(
+        self.context.logger.info("Creating request to close session with session_id {}".format(
             self.perun_session_id))
         perun_dialogues = cast(
             PerunDialogues, self.context.perun_dialogues
         )
-        # TODO: make force paramter to be chosen by caller, true will close and persist open channels
-        close_session_request = CloseSessionReq(self.perun_session_id, True)
+        close_session_request = CloseSessionReq(self.perun_session_id, self.perun_force_close)
         message, dialogue = perun_dialogues.create(
             counterparty=self.perun_connection, performative=PerunGrpcMessage.Performative.REQUEST,
             type=close_session_request.__class__.__name__, content=bytes(close_session_request))
@@ -78,7 +78,41 @@ class PerunCloseSessionBehaviour(OneShotBehaviour):
         self.context.logger.info("Teardown of PerunCloseSessionBehaviour...")
 
 
+class PerunGetPeerIdBehaviour(OneShotBehaviour):
+
+    def __init__(self, **kwargs: Any) -> None:
+        self.perun_alias: str = cast(str, kwargs.pop("alias", None))
+        self.perun_session_id: str = cast(str, kwargs.pop("session_id", None))
+        super().__init__(**kwargs)
+
+    def setup(self) -> None:
+        """Implement the setup."""
+        self.context.logger.info("Setup of PerunGetPeerIdBehaviour...")
+        if self.perun_alias is None or self.perun_session_id is None:
+            raise ValueError("No alias or session id is given to retrieve the corresponding PeerId!")
+
+    def act(self) -> None:
+        self.context.logger.info("Creating request to get PeerId for alias {} for session_id {}".format(
+            self.perun_alias, self.perun_session_id))
+        perun_dialogues = cast(
+            PerunDialogues, self.context.perun_dialogues
+        )
+        get_peer_id_request = GetPeerIdReq(alias=self.perun_alias, session_id=self.perun_session_id)
+        message, dialogue = perun_dialogues.create(
+            counterparty=PERUN_CONNECTION_ID, performative=PerunGrpcMessage.Performative.REQUEST,
+            type=get_peer_id_request.__class__.__name__, content=bytes(get_peer_id_request))
+        self.context.logger.debug("Get peer ID message to be send {}".format(message))
+        self.context.outbox.put_message(message=message)
+
+    def teardown(self) -> None:
+        """Implement the task teardown."""
+        self.context.logger.info("Teardown of PerunGetPeerIdBehaviour...")
+
+
 class PerunAliceBehaviour(TickerBehaviour):
+
+    BOB = "bob"
+    ALIAS_BOB = "alias_{}".format(BOB)
 
     def __init__(self, **kwargs: Any):
         """Initialize the search behaviour."""
@@ -102,6 +136,12 @@ class PerunAliceBehaviour(TickerBehaviour):
                 self.context.logger.info("Alice is opening session...")
                 self.context.new_behaviours.put(PerunOpenSessionBehaviour(
                     name="alice_open_session", skill_context=self.context, scf=self.perun_scf))
+            elif self.perun_scf in self.context.shared_state and not self.context.shared_state.get(self.perun_scf) is None and \
+                    not self.context.shared_state.get(self.perun_scf) + "_" + self.BOB in self.context.shared_state:
+                self.context.logger.info("Alice is getting PeerId alias of {}".format(self.BOB))
+                perun_session_id = self.context.shared_state.get(self.perun_scf)
+                self.context.new_behaviours.put(PerunGetPeerIdBehaviour(
+                    name=self.ALIAS_BOB, skill_context=self.context, alias=self.BOB, session_id=perun_session_id))
             elif self.perun_scf in self.context.shared_state and not self.context.shared_state.get(self.perun_scf) is None and \
                     not "alice_close_session" in self.context.behaviours.__dict__:
                 perun_session_id = self.context.shared_state.get(self.perun_scf)

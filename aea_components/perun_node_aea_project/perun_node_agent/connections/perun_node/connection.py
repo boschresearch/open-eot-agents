@@ -14,6 +14,7 @@ from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope, Message
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue
 
+from packages.bosch.connections.perun_node.id_provider import DefaultIdProvider
 from packages.bosch.connections.perun_node.session import PerunSession
 from packages.bosch.protocols.perun_grpc.dialogues import PerunGrpcDialogue, PerunGrpcDialogues
 from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage
@@ -24,7 +25,7 @@ CONNECTION_ID = PublicId.from_str("bosch/perun_node:0.1.0")
 CONFIG_HOST = "host"
 CONFIG_PORT = "port"
 
-_default_logger = logging.getLogger("packages.bosch.connections.perun_node")
+_default_logger = logging.getLogger(__name__)
 
 
 class PerunNodeDialogues(PerunGrpcDialogues):
@@ -94,6 +95,7 @@ class PerunNodeConnection(Connection):
         self.state = ConnectionStates.connected
         self._in_queue: janus.Queue[Envelope] = janus.Queue()
         self._perun_session = PerunSession(self._payment_api_stub, self._in_queue)
+        self._perun_id_provider = DefaultIdProvider(self._payment_api_stub, self._in_queue)
         _default_logger.info("Node connected to {}:{}".format(self.host, self.port))
 
     async def disconnect(self) -> None:
@@ -135,6 +137,10 @@ class PerunNodeConnection(Connection):
             await self._perun_session.open_session(message, dialogue)
         elif message.type == 'CloseSessionReq':
             await self._perun_session.close_session(message, dialogue)
+        elif message.type == 'AddPeerIdReq':
+            await self._perun_id_provider.add_peer_id(message, dialogue)
+        elif message.type == 'GetPeerIdReq':
+            await self._perun_id_provider.get_peer_id(message, dialogue)
 
     async def receive(self, *args: Any, **kwargs: Any) -> Optional[Envelope]:
         """

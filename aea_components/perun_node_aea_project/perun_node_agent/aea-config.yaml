@@ -33,7 +33,7 @@ logging_config:
     console:
       class: logging.StreamHandler
       formatter: standard
-      level: INFO
+      level: DEBUG
   loggers:
     aea:
       handlers:
@@ -42,7 +42,7 @@ logging_config:
     packages.bosch.connections.perun_node:
       handlers:
       - console
-      level: INFO
+      level: DEBUG
 dependencies:
   aea-ledger-fetchai: {}
 default_connection: null

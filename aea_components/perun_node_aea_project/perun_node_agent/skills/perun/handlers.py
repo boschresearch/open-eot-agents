@@ -53,7 +53,10 @@ class PerunHandler(Handler):
                 self._handle_open_session_resp(perun_msg, perun_dialogue)
             elif perun_msg.type == 'CloseSessionRespMsgSuccess':
                 self._handle_close_session_resp(perun_msg, perun_dialogue)
+            elif perun_msg.type == 'GetPeerIdRespMsgSuccess':
+                self._handle_get_peer_id_resp(perun_msg, perun_dialogue)
             else:
+                # TODO: Handle error message
                 self.context.logger.warning(
                     "cannot handle perun message of performative={} in dialogue={}.".format(
                         perun_msg.performative, perun_dialogue
@@ -93,6 +96,18 @@ class PerunHandler(Handler):
                     csr.session_id, key))
             except IndexError as error:
                 self.context.logger.error("No key find in shared_state for session_id {}".format(csr.session_id))
+        else:
+            self.context.logger.error("No corresponding request {} found for response {}".format(request, response))
+
+    def _handle_get_peer_id_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
+        response = GetPeerIdRespMsgSuccess().parse(perun_msg.content)
+        request = cast(Optional[PerunGrpcMessage], perun_dialogue.last_outgoing_message)
+        if request.type == "GetPeerIdReq":
+            get_peer_id_req = GetPeerIdReq().parse(request.content)
+            self.context.logger.info("Adding PeerId {} for session_id {} and alias {} to shared state.".format(
+                response.peer_id, get_peer_id_req.session_id, get_peer_id_req.alias))
+            self.context.shared_state.update(
+                {"{}_{}".format(get_peer_id_req.session_id, get_peer_id_req.alias): response.peer_id})
         else:
             self.context.logger.error("No corresponding request {} found for response {}".format(request, response))
 
