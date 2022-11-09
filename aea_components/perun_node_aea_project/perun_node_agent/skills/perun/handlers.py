@@ -13,6 +13,7 @@ from aea.skills.base import Handler
 from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage
 from packages.bosch.protocols.perun_grpc.grpc_message import *
 from packages.bosch.skills.perun.dialogues import PerunDialogue, PerunDialogues
+from packages.bosch.skills.perun.session import PerunSession, PerunSessions
 
 
 class PerunHandler(Handler):
@@ -64,6 +65,7 @@ class PerunHandler(Handler):
                 )
 
     def _handle_open_session_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
+        perun_sessions = cast(PerunSessions, self.context.perun_sessions)
         response = OpenSessionRespMsgSuccess().parse(perun_msg.content)
         request = cast(Optional[PerunGrpcMessage], perun_dialogue.last_outgoing_message)
         if request is None:
@@ -74,11 +76,13 @@ class PerunHandler(Handler):
             osr = OpenSessionReq().parse(request.content)
             self.context.logger.info("Got session id {} for config file {}. Adding to shared state."
                                      .format(response.session_id, osr.config_file))
-            self.context.shared_state.update({osr.config_file: response.session_id})
+            perun_sessions.sessions.update({response.session_id: PerunSession(
+                is_open=True, config_file=osr.config_file, restored_chs=response.restored_chs)})
         else:
             self.context.logger.error("No corresponding request {} found for response {}".format(request, response))
 
     def _handle_close_session_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
+        perun_sessions = cast(PerunSessions, self.context.perun_sessions)
         response = CloseSessionRespMsgSuccess().parse(perun_msg.content)
         request = cast(Optional[PerunGrpcMessage], perun_dialogue.last_outgoing_message)
         if request is None:
@@ -90,24 +94,26 @@ class PerunHandler(Handler):
             self.context.logger.info(
                 "Got closing session response for session id {}. Removing from context.".format(csr.session_id))
             try:
-                key = [k for k, v in self.context.shared_state.items() if v == csr.session_id][0]
-                del self.context.shared_state[key]
-                self.context.logger.info("Removed session_id {} from shared state with config file {}".format(
-                    csr.session_id, key))
+                perun_sessions.sessions.get(csr.session_id).is_open = False
+                self.context.logger.info(
+                    "Set is_open to False for session_id {}".format(
+                        csr.session_id))
             except IndexError as error:
                 self.context.logger.error("No key find in shared_state for session_id {}".format(csr.session_id))
         else:
             self.context.logger.error("No corresponding request {} found for response {}".format(request, response))
 
     def _handle_get_peer_id_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
+        perun_sessions = cast(PerunSessions, self.context.perun_sessions)
         response = GetPeerIdRespMsgSuccess().parse(perun_msg.content)
         request = cast(Optional[PerunGrpcMessage], perun_dialogue.last_outgoing_message)
         if request.type == "GetPeerIdReq":
             get_peer_id_req = GetPeerIdReq().parse(request.content)
             self.context.logger.info("Adding PeerId {} for session_id {} and alias {} to shared state.".format(
                 response.peer_id, get_peer_id_req.session_id, get_peer_id_req.alias))
-            self.context.shared_state.update(
-                {"{}_{}".format(get_peer_id_req.session_id, get_peer_id_req.alias): response.peer_id})
+            perun_sessions.sessions.get(
+                get_peer_id_req.session_id).peer_ids.update(
+                {get_peer_id_req.alias: response.peer_id})
         else:
             self.context.logger.error("No corresponding request {} found for response {}".format(request, response))
 

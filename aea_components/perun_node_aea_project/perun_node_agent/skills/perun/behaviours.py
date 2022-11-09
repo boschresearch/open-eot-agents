@@ -5,11 +5,12 @@
 """This package contains a scaffold of a behaviour."""
 
 from ast import Not
-from typing import Any, cast
+from typing import Any, Dict, cast
 from aea.skills.behaviours import OneShotBehaviour, TickerBehaviour
 from packages.bosch.skills.perun.dialogues import PerunDialogues
 from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage
 from packages.bosch.protocols.perun_grpc.grpc_message import CloseSessionReq, GetPeerIdReq, OpenSessionReq
+from packages.bosch.skills.perun.session import PerunSession, PerunSessions
 
 PERUN_CONNECTION_ID = "bosch/perun_node:0.1.0"
 
@@ -33,13 +34,13 @@ class PerunOpenSessionBehaviour(OneShotBehaviour):
         perun_dialogues = cast(
             PerunDialogues, self.context.perun_dialogues
         )
+        perun_sessions = cast(PerunSessions, self.context.perun_sessions)
         open_session_request = OpenSessionReq(config_file=self.perun_scf)
         message, dialogue = perun_dialogues.create(
             counterparty=self.perun_connection, performative=PerunGrpcMessage.Performative.REQUEST,
             type=open_session_request.__class__.__name__, content=bytes(open_session_request))
         self.context.logger.debug("Open session message to be send {}".format(message))
         self.context.outbox.put_message(message=message)
-        self.context.shared_state.update({self.perun_scf: None})
 
     def teardown(self) -> None:
         """Implement the task teardown."""
@@ -132,24 +133,29 @@ class PerunAliceBehaviour(TickerBehaviour):
     def act(self) -> None:
         self.context.logger.debug("Act of PerunAliceBehaviour...")
         if not self._done:
-            if not self.perun_scf in self.context.shared_state and not "alice_open_session" in self.context.behaviours.__dict__:
+            perun_sessions = cast(PerunSessions, self.context.perun_sessions)
+            session_id = self._get_key_for_session_config(self.perun_scf, perun_sessions.sessions)
+            if not self.perun_scf is None and session_id is None:
                 self.context.logger.info("Alice is opening session...")
                 self.context.new_behaviours.put(PerunOpenSessionBehaviour(
                     name="alice_open_session", skill_context=self.context, scf=self.perun_scf))
-            elif self.perun_scf in self.context.shared_state and not self.context.shared_state.get(self.perun_scf) is None and \
-                    not self.context.shared_state.get(self.perun_scf) + "_" + self.BOB in self.context.shared_state:
+            elif not session_id is None and not self.BOB in perun_sessions.sessions.get(session_id).peer_ids.keys():
                 self.context.logger.info("Alice is getting PeerId alias of {}".format(self.BOB))
-                perun_session_id = self.context.shared_state.get(self.perun_scf)
                 self.context.new_behaviours.put(PerunGetPeerIdBehaviour(
-                    name=self.ALIAS_BOB, skill_context=self.context, alias=self.BOB, session_id=perun_session_id))
-            elif self.perun_scf in self.context.shared_state and not self.context.shared_state.get(self.perun_scf) is None and \
-                    not "alice_close_session" in self.context.behaviours.__dict__:
-                perun_session_id = self.context.shared_state.get(self.perun_scf)
+                    name=self.ALIAS_BOB, skill_context=self.context, alias=self.BOB, session_id=session_id))
+            elif not session_id is None and self.BOB in perun_sessions.sessions.get(session_id).peer_ids.keys():
                 self.context.logger.info("Alice is closing session id {} for config {}".format(
-                    perun_session_id, self.perun_scf))
+                    session_id, self.perun_scf))
                 self.context.new_behaviours.put(PerunCloseSessionBehaviour(
-                    name="alice_close_session", skill_context=self.context, session_id=perun_session_id))
+                    name="alice_close_session", skill_context=self.context, session_id=session_id))
                 self._done = True
+
+    def _get_key_for_session_config(self, scf: str, sessions: Dict[str, PerunSession]) -> str:
+        if len(sessions.keys()):
+            for k, v in sessions.items():
+                if v.config_file == scf:
+                    return k
+        return None
 
     def teardown(self) -> None:
         self.context.logger.info("Teardown of PerunAliceBehaviour...")
