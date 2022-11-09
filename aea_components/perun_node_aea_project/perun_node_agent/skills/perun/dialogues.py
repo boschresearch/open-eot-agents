@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-"""This package contains a scaffold of a model."""
-
 from aea.protocols.base import Message
 from aea.skills.base import Address, Model
 from aea.protocols.dialogue.base import Dialogue as BaseDialogue

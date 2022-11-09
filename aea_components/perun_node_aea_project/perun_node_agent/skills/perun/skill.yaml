@@ -31,5 +31,8 @@ models:
   perun_dialogues:
     args: {}
     class_name: PerunDialogues
+  perun_sessions:
+    args: {}
+    class_name: PerunSessions
 dependencies: {}
 is_abstract: false
