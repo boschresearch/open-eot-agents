@@ -10,7 +10,7 @@ This module contains the classes required for perun_grpc dialogue management.
 """
 
 from abc import ABC
-from typing import Callable, FrozenSet, Type, cast
+from typing import Callable, Dict, FrozenSet, Type, cast
 
 from aea.common import Address
 from aea.protocols.base import Message
@@ -22,28 +22,13 @@ from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage
 class PerunGrpcDialogue(Dialogue):
     """The perun_grpc dialogue class maintains state of a dialogue and manages it."""
 
-    INITIAL_PERFORMATIVES = frozenset(
-        {PerunGrpcMessage.Performative.REQUEST, PerunGrpcMessage.Performative.PAYCHRESP}
+    INITIAL_PERFORMATIVES: FrozenSet[Message.Performative] = frozenset(
+        {PerunGrpcMessage.Performative.REQUEST}
     )
-    TERMINAL_PERFORMATIVES = frozenset(
-        {PerunGrpcMessage.Performative.RESPONSE, PerunGrpcMessage.Performative.END}
+    TERMINAL_PERFORMATIVES: FrozenSet[Message.Performative] = frozenset(
+        {PerunGrpcMessage.Performative.RESPONSE}
     )
-    VALID_REPLIES = {
-        PerunGrpcMessage.Performative.ACCEPT: frozenset(
-            {PerunGrpcMessage.Performative.PAYCHRESP, PerunGrpcMessage.Performative.END}
-        ),
-        PerunGrpcMessage.Performative.END: frozenset(),
-        PerunGrpcMessage.Performative.PAYCHRESP: frozenset(
-            {
-                PerunGrpcMessage.Performative.PAYCHRESP,
-                PerunGrpcMessage.Performative.ACCEPT,
-                PerunGrpcMessage.Performative.REJECT,
-                PerunGrpcMessage.Performative.END,
-            }
-        ),
-        PerunGrpcMessage.Performative.REJECT: frozenset(
-            {PerunGrpcMessage.Performative.PAYCHRESP, PerunGrpcMessage.Performative.END}
-        ),
+    VALID_REPLIES: Dict[Message.Performative, FrozenSet[Message.Performative]] = {
         PerunGrpcMessage.Performative.REQUEST: frozenset(
             {PerunGrpcMessage.Performative.RESPONSE}
         ),
@@ -74,7 +59,7 @@ class PerunGrpcDialogue(Dialogue):
         :param dialogue_label: the identifier of the dialogue
         :param self_address: the address of the entity for whom this dialogue is maintained
         :param role: the role of the agent this dialogue is maintained for
-        :return: None
+        :param message_class: the message class used
         """
         Dialogue.__init__(
             self,
@@ -102,7 +87,8 @@ class PerunGrpcDialogues(Dialogues, ABC):
         Initialize dialogues.
 
         :param self_address: the address of the entity for whom dialogues are maintained
-        :return: None
+        :param dialogue_class: the dialogue class used
+        :param role_from_first_message: the callable determining role from first message
         """
         Dialogues.__init__(
             self,

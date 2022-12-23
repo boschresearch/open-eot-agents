@@ -5,7 +5,7 @@
 """
 This module contains the support resources for the perun_grpc protocol.
 
-It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.1.0`.
+It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.2.1`.
 """
 
 from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage

@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# -*- coding: utf-8 -*-
+
 """This module contains perun_grpc's message definition."""
 
 # pylint: disable=too-many-statements,too-many-locals,no-member,too-few-public-methods,too-many-branches,not-an-iterable,unidiomatic-typecheck,unsubscriptable-object
@@ -27,10 +29,6 @@ class PerunGrpcMessage(Message):
     class Performative(Message.Performative):
         """Performatives for the perun_grpc protocol."""
 
-        ACCEPT = "accept"
-        END = "end"
-        PAYCHRESP = "paychresp"
-        REJECT = "reject"
         REQUEST = "request"
         RESPONSE = "response"
 
@@ -38,7 +36,7 @@ class PerunGrpcMessage(Message):
             """Get the string representation."""
             return str(self.value)
 
-    _performatives = {"accept", "end", "paychresp", "reject", "request", "response"}
+    _performatives = {"request", "response"}
     __slots__: Tuple[str, ...] = tuple()
 
     class _SlotsCls:
@@ -47,7 +45,6 @@ class PerunGrpcMessage(Message):
             "dialogue_reference",
             "message_id",
             "performative",
-            "session_id",
             "target",
             "type",
         )
@@ -67,6 +64,7 @@ class PerunGrpcMessage(Message):
         :param dialogue_reference: the dialogue reference.
         :param target: the message target.
         :param performative: the message performative.
+        :param **kwargs: extra options.
         """
         super().__init__(
             dialogue_reference=dialogue_reference,
@@ -110,12 +108,6 @@ class PerunGrpcMessage(Message):
         """Get the 'content' content from the message."""
         enforce(self.is_set("content"), "'content' content is not set.")
         return cast(bytes, self.get("content"))
-
-    @property
-    def session_id(self) -> str:
-        """Get the 'session_id' content from the message."""
-        enforce(self.is_set("session_id"), "'session_id' content is not set.")
-        return cast(str, self.get("session_id"))
 
     @property
     def type(self) -> str:
@@ -197,32 +189,6 @@ class PerunGrpcMessage(Message):
                         type(self.content)
                     ),
                 )
-            elif self.performative == PerunGrpcMessage.Performative.PAYCHRESP:
-                expected_nb_of_contents = 3
-                enforce(
-                    isinstance(self.session_id, str),
-                    "Invalid type for content 'session_id'. Expected 'str'. Found '{}'.".format(
-                        type(self.session_id)
-                    ),
-                )
-                enforce(
-                    isinstance(self.type, str),
-                    "Invalid type for content 'type'. Expected 'str'. Found '{}'.".format(
-                        type(self.type)
-                    ),
-                )
-                enforce(
-                    isinstance(self.content, bytes),
-                    "Invalid type for content 'content'. Expected 'bytes'. Found '{}'.".format(
-                        type(self.content)
-                    ),
-                )
-            elif self.performative == PerunGrpcMessage.Performative.ACCEPT:
-                expected_nb_of_contents = 0
-            elif self.performative == PerunGrpcMessage.Performative.REJECT:
-                expected_nb_of_contents = 0
-            elif self.performative == PerunGrpcMessage.Performative.END:
-                expected_nb_of_contents = 0
 
             # Check correct content count
             enforce(

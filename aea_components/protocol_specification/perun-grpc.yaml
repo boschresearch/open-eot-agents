@@ -13,13 +13,24 @@ speech_acts:
   response:
     type: pt:str
     content: pt:bytes
+  paychresp:
+    session_id: pt:str
+    type: pt:str
+    content: pt:bytes
+  accept: {}
+  reject: {}
+  end: {}
 ...
 ---
-initiation: [request]
+initiation: [request, paychresp]
 reply:
   request: [response]
   response: []
-termination: [response]
+  paychresp: [paychresp, accept, reject, end]
+  accept: [paychresp, end]
+  reject: [paychresp, end]
+  end: []
+termination: [response, end]
 roles: {client, server}
 end_states: [successful]
 keep_terminal_state_dialogues: false

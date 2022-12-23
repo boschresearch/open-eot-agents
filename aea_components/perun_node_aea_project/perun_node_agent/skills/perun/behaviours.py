@@ -143,12 +143,12 @@ class PerunAliceBehaviour(TickerBehaviour):
                 self.context.logger.info("Alice is getting PeerId alias of {}".format(self.BOB))
                 self.context.new_behaviours.put(PerunGetPeerIdBehaviour(
                     name=self.ALIAS_BOB, skill_context=self.context, alias=self.BOB, session_id=session_id))
-            elif not session_id is None and self.BOB in perun_sessions.sessions.get(session_id).peer_ids.keys():
-                self.context.logger.info("Alice is closing session id {} for config {}".format(
-                    session_id, self.perun_scf))
-                self.context.new_behaviours.put(PerunCloseSessionBehaviour(
-                    name="alice_close_session", skill_context=self.context, session_id=session_id))
-                self._done = True
+            # elif not session_id is None and self.BOB in perun_sessions.sessions.get(session_id).peer_ids.keys():
+            #     self.context.logger.info("Alice is closing session id {} for config {}".format(
+            #         session_id, self.perun_scf))
+            #     self.context.new_behaviours.put(PerunCloseSessionBehaviour(
+            #         name="alice_close_session", skill_context=self.context, session_id=session_id))
+            #     self._done = True
 
     def _get_key_for_session_config(self, scf: str, sessions: Dict[str, PerunSession]) -> str:
         if len(sessions.keys()):

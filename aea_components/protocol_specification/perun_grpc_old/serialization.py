@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# -*- coding: utf-8 -*-
+
 """Serialization module for perun_grpc protocol."""
 
 # pylint: disable=too-many-statements,too-many-locals,no-member,too-few-public-methods,redefined-builtin
@@ -52,24 +54,6 @@ class PerunGrpcSerializer(Serializer):
             content = msg.content
             performative.content = content
             perun_grpc_msg.response.CopyFrom(performative)
-        elif performative_id == PerunGrpcMessage.Performative.PAYCHRESP:
-            performative = perun_grpc_pb2.PerunGrpcMessage.Paychresp_Performative()  # type: ignore
-            session_id = msg.session_id
-            performative.session_id = session_id
-            type = msg.type
-            performative.type = type
-            content = msg.content
-            performative.content = content
-            perun_grpc_msg.paychresp.CopyFrom(performative)
-        elif performative_id == PerunGrpcMessage.Performative.ACCEPT:
-            performative = perun_grpc_pb2.PerunGrpcMessage.Accept_Performative()  # type: ignore
-            perun_grpc_msg.accept.CopyFrom(performative)
-        elif performative_id == PerunGrpcMessage.Performative.REJECT:
-            performative = perun_grpc_pb2.PerunGrpcMessage.Reject_Performative()  # type: ignore
-            perun_grpc_msg.reject.CopyFrom(performative)
-        elif performative_id == PerunGrpcMessage.Performative.END:
-            performative = perun_grpc_pb2.PerunGrpcMessage.End_Performative()  # type: ignore
-            perun_grpc_msg.end.CopyFrom(performative)
         else:
             raise ValueError("Performative not valid: {}".format(performative_id))
 
@@ -111,19 +95,6 @@ class PerunGrpcSerializer(Serializer):
             performative_content["type"] = type
             content = perun_grpc_pb.response.content
             performative_content["content"] = content
-        elif performative_id == PerunGrpcMessage.Performative.PAYCHRESP:
-            session_id = perun_grpc_pb.paychresp.session_id
-            performative_content["session_id"] = session_id
-            type = perun_grpc_pb.paychresp.type
-            performative_content["type"] = type
-            content = perun_grpc_pb.paychresp.content
-            performative_content["content"] = content
-        elif performative_id == PerunGrpcMessage.Performative.ACCEPT:
-            pass
-        elif performative_id == PerunGrpcMessage.Performative.REJECT:
-            pass
-        elif performative_id == PerunGrpcMessage.Performative.END:
-            pass
         else:
             raise ValueError("Performative not valid: {}.".format(performative_id))
 

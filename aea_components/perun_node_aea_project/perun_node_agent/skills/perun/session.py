@@ -5,7 +5,7 @@
 from typing import Any, Dict, List, Optional
 from aea.skills.base import Model
 
-from packages.bosch.protocols.perun_grpc.grpc_message import PayChInfo, PeerId
+from packages.bosch.protocols.perun_grpc.grpc_message import PayChInfo, PeerId, SubPayChUpdatesRespNotify
 
 
 class PerunSession():
@@ -16,6 +16,8 @@ class PerunSession():
         self._is_open = kwargs.pop("is_open", False)
         self._peer_ids: Optional[Dict[str, PeerId]] = {}
         self._restored_chs: List["PayChInfo"] = kwargs.pop("restored_chs", [])
+        self._channels: Optional[Dict[str, PayChInfo]] = {}
+        self._prop_ch_updates: Optional[Dict[str, SubPayChUpdatesRespNotify]] = {}
 
     @property
     def config_file(self) -> str:
@@ -41,6 +43,22 @@ class PerunSession():
     def restored_chs(self) -> List["PayChInfo"]:
         """Get the loaded peer ids of the session."""
         return self._restored_chs
+
+    @property
+    def channels(self) -> Dict[str, PayChInfo]:
+        """
+        Get the current channels.
+        Key of one channel is the channel_id.
+        """
+        return self._channels
+
+    @property
+    def prop_ch_updates(self) -> Dict[str, SubPayChUpdatesRespNotify]:
+        """
+        Get the current retrieved proposed channel updates.
+        Key of one proposal is the channel_id.
+        """
+        return self._prop_ch_updates
 
 
 class PerunSessions(Model):

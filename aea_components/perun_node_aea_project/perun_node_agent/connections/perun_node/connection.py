@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from concurrent.futures import Future, ThreadPoolExecutor
 import logging
 import janus
 from typing import Any, Optional, cast
@@ -24,8 +25,6 @@ CONNECTION_ID = PublicId.from_str("bosch/perun_node:0.1.0")
 
 CONFIG_HOST = "host"
 CONFIG_PORT = "port"
-
-_default_logger = logging.getLogger(__name__)
 
 
 class PerunNodeDialogues(PerunGrpcDialogues):
@@ -73,12 +72,14 @@ class PerunNodeConnection(Connection):
         :param kwargs: keyword arguments passed to component base
         """
         super().__init__(**kwargs)  # pragma: no cover
-        self.logger = _default_logger
+        self.logger = logging.getLogger("packages.bosch.connections.perun_node.connection")
         self.host = cast(str, self.configuration.config.get(CONFIG_HOST))
         self.port = cast(str, self.configuration.config.get(CONFIG_PORT))
-        self._in_queue = None
+        self._in_queue: janus.Queue[Envelope] = None
         self._dialogues = PerunNodeDialogues()
         self._perun_session = None
+        self._executor = None
+        self._futures = None
 
     async def connect(self) -> None:
         """
@@ -89,14 +90,22 @@ class PerunNodeConnection(Connection):
         if (
             self.host is None or self.port is None
         ):  # pragma: nocover
-            raise ValueError("host and port must be set!")
-        self._channel = Channel(host=self.host, port=self.port)
-        self._payment_api_stub = PaymentApiStub(channel=self._channel)
-        self.state = ConnectionStates.connected
-        self._in_queue: janus.Queue[Envelope] = janus.Queue()
-        self._perun_session = PerunSession(self._payment_api_stub, self._in_queue)
-        self._perun_id_provider = DefaultIdProvider(self._payment_api_stub, self._in_queue)
-        _default_logger.info("Node connected to {}:{}".format(self.host, self.port))
+            raise ValueError("[{}] host and port must be set!".format(self._identity.name))
+        if self.state == ConnectionStates.disconnected:
+            self.state = ConnectionStates.connecting
+            self._channel = Channel(host=self.host, port=self.port)
+            self._payment_api_stub = PaymentApiStub(channel=self._channel)
+            self.state = ConnectionStates.connected
+            self._in_queue = janus.Queue()
+            self._executor = ThreadPoolExecutor()
+            self._futures = []
+            self._perun_session = PerunSession(self._payment_api_stub, self._in_queue,
+                                               self._executor, self._futures, self._identity.name)
+            self._perun_id_provider = DefaultIdProvider(self._payment_api_stub, self._in_queue, self._identity.name)
+            self.state = ConnectionStates.connected
+            self.logger.info("[{}] Node connected to {}:{}".format(self._identity.name, self.host, self.port))
+        else:
+            self.logger.warn("[{}] Connecting not possible as already connected!".format(self._identity.name))
 
     async def disconnect(self) -> None:
         """
@@ -104,13 +113,22 @@ class PerunNodeConnection(Connection):
 
         In the implementation, remember to update 'connection_status' accordingly.
         """
-        if self._channel == None:
-            raise ValueError("Channel is not set or already closed!")
-        self._channel.close()
-        self.state = ConnectionStates.disconnected
-        self._in_queue.close()
-        await self._in_queue.wait_closed()
-        _default_logger.info("Node {}:{} disonnected.".format(self.host, self.port))
+        if self.state == ConnectionStates.connected:
+            self.logger.info("[{}] Disconnecting node {}:{} ...".format(self._identity.name, self.host, self.port))
+            if self._channel == None:
+                raise ValueError("[{}] Channel is not set or already closed!".format(self._identity.name))
+            self.state = ConnectionStates.disconnecting
+            self._executor.shutdown(wait=False)
+            for future in self._futures:
+                await future.shutdown()
+            self._channel.close()
+            self._in_queue.close()
+            await self._in_queue.wait_closed()
+            self.state = ConnectionStates.disconnected
+            self.logger.info("[{}] Node {}:{} disonnected.".format(self._identity.name, self.host, self.port))
+        else:
+            self.logger.warn("[{}] Disconnecting not possible, as connection is not connected!".format(
+                self._identity.name))
 
     async def send(self, envelope: Envelope) -> None:
         """
@@ -119,28 +137,44 @@ class PerunNodeConnection(Connection):
         :param envelope: the envelope to send.
         """
         message = cast(PerunGrpcMessage, envelope.message)
-        _default_logger.info("Sending message to perun node {}".format(message))
+        self.logger.info("[{}] Sending message to perun node {}".format(self._identity.name, message))
         if (
             message.performative != PerunGrpcMessage.Performative.REQUEST
+            and message.performative != PerunGrpcMessage.Performative.ACCEPT
+            and message.performative != PerunGrpcMessage.Performative.REJECT
+            and message.performative != PerunGrpcMessage.Performative.END
         ):  # pragma: nocover
             self.logger.warning(
-                "The PerunGrpcMessage performative must be a REQUEST. Envelop dropped."
+                "[{}] The PerunGrpcMessage performative must be a REQUEST, ACCEPT, REJECT or END. Envelop dropped.".format(self._identity.name)
             )
             return
         if self._payment_api_stub == None:
-            raise ValueError("Pament stub is not set...")
+            raise ValueError("[{}] Pament stub is not set...".format(self._identity.name))
         dialogue = cast(Optional[PerunGrpcDialogue], self._dialogues.update(message))
         if not dialogue:
-            self.logger.warning("Could not create PerunGrpcDialogue for message={}".format(message))
+            self.logger.warning("[{}] Could not create PerunGrpcDialogue for message={}".format(
+                self._identity.name, message))
             return
-        if message.type == 'OpenSessionReq':
-            await self._perun_session.open_session(message, dialogue)
-        elif message.type == 'CloseSessionReq':
-            await self._perun_session.close_session(message, dialogue)
-        elif message.type == 'AddPeerIdReq':
-            await self._perun_id_provider.add_peer_id(message, dialogue)
-        elif message.type == 'GetPeerIdReq':
-            await self._perun_id_provider.get_peer_id(message, dialogue)
+        # end performative is just terminating the dialogue, so nothing to do here
+        elif message.performative != PerunGrpcMessage.Performative.END:
+            # first checking for accept or reject as here message.type is not set
+            if message.performative == PerunGrpcMessage.Performative.ACCEPT or \
+                    message.performative == PerunGrpcMessage.Performative.REJECT:
+                last_message = cast(PerunGrpcMessage, dialogue.last_outgoing_message)
+                # check for pay channel proposal
+                if last_message.type == 'SubPayChProposalsResp':
+                    await self._perun_session.send_proposal_reply(message, dialogue, self._dialogues)
+                # check for pay channel update
+                elif last_message.type == 'SubPayChUpdatesResp':
+                    await self._perun_session.send_ch_update_reply(message, dialogue, self._dialogues)
+            elif message.type == 'OpenSessionReq':
+                await self._perun_session.open_session(message, dialogue, self._dialogues)
+            elif message.type == 'CloseSessionReq':
+                await self._perun_session.close_session(message, dialogue)
+            elif message.type == 'AddPeerIdReq':
+                await self._perun_id_provider.add_peer_id(message, dialogue)
+            elif message.type == 'GetPeerIdReq':
+                await self._perun_id_provider.get_peer_id(message, dialogue)
 
     async def receive(self, *args: Any, **kwargs: Any) -> Optional[Envelope]:
         """

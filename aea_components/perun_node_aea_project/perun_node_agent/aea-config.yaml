@@ -39,7 +39,7 @@ logging_config:
       handlers:
       - console
       level: INFO
-    packages.bosch.connections.perun_node:
+    packages.bosch:
       handlers:
       - console
       level: DEBUG
