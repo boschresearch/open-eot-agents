@@ -16,13 +16,14 @@ from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage
 
 class DefaultIdProvider():
 
-    def __init__(self, payment_api_stub: PaymentApiStub, in_queue: janus.Queue[Envelope]) -> None:
+    def __init__(self, payment_api_stub: PaymentApiStub, in_queue: janus.Queue[Envelope], agent_name: str) -> None:
         self._logger = logging.getLogger(__name__)
         self._payment_api_stub = payment_api_stub
         self._in_queue = in_queue
+        self._agent_name = agent_name
 
     async def add_peer_id(self, message: PerunGrpcMessage, dialogue: PerunGrpcDialogue) -> None:
-        self._logger.debug("Add peer id called with {}".format(message))
+        self._logger.debug("[{}] Add peer id called with {}".format(self._agent_name, message))
         req = AddPeerIdReq().parse(message.content)
         resp = await self._payment_api_stub.add_peer_id(req)
         if betterproto.which_one_of(resp, "response")[1] != None:
@@ -36,7 +37,7 @@ class DefaultIdProvider():
                 await self._in_queue.async_q.put(envelope)
 
     async def get_peer_id(self, message: PerunGrpcMessage, dialogue: PerunGrpcDialogue) -> None:
-        self._logger.debug("Get peer id called with {}".format(message))
+        self._logger.debug("[{}] Get peer id called with {}".format(self._agent_name, message))
         req = GetPeerIdReq().parse(message.content)
         resp = await self._payment_api_stub.get_peer_id(req)
         if betterproto.which_one_of(resp, "response")[1] != None:

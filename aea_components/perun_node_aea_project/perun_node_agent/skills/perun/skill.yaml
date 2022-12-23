@@ -7,9 +7,11 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmZeN1ahocF5Pkmi4qks5e5GfoPzb2aCzLLZkWmjuUg3vW
-  behaviours.py: QmXAKfznZGdGj5KAnShtqepDcy6AnpS6QsEBQFASM7Twtx
-  dialogues.py: QmSngjpfgr1ybYEqMV6HUeqHyr2HPHF1sjXBQzUwc2T3k3
-  handlers.py: QmdLWTsiFczBvVn4i1u5UwLhKaEwnwsjgUtuzhNbCexbuv
+  behaviours.py: QmaRWCXD9QwdQPxN1pZe4m4f9VXpyq1xSrqi7k4qhUZo6o
+  dialogues.py: QmXFzqG2SeC8HTGXRH1z1ZJdaPSLvV7y6XiK4PtHy6ixoo
+  handlers.py: QmQ8EvUH38HEBnvSca5jVbbGjkknxbk7Pc6NTSBJX3PQ46
+  session.py: QmULJhJ298Hn7W3LH4F4CwQJBgysScC71sswbcyNrjjgEz
+  strategy.py: QmfNeJUmtn3wYpf1DQwazA7ASscJTB6pPd7XxKujVJw7Qi
 fingerprint_ignore_patterns: []
 connections:
 - bosch/perun_node:0.1.0
@@ -31,6 +33,10 @@ models:
   perun_dialogues:
     args: {}
     class_name: PerunDialogues
+  perun_pay_ch_strategy:
+    args:
+      max_balance: 5
+    class_name: PayChannelStrategy
   perun_sessions:
     args: {}
     class_name: PerunSessions
