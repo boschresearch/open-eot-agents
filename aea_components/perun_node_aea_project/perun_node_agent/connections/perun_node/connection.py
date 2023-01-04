@@ -79,7 +79,7 @@ class PerunNodeConnection(Connection):
         self._dialogues = PerunNodeDialogues()
         self._perun_session = None
         self._executor = None
-        self._futures = None
+        self._threads = None
 
     async def connect(self) -> None:
         """
@@ -98,9 +98,9 @@ class PerunNodeConnection(Connection):
             self.state = ConnectionStates.connected
             self._in_queue = janus.Queue()
             self._executor = ThreadPoolExecutor()
-            self._futures = []
+            self._threads = []
             self._perun_session = PerunSession(self._payment_api_stub, self._in_queue,
-                                               self._executor, self._futures, self._identity.name)
+                                               self._executor, self._threads, self._identity.name)
             self._perun_id_provider = DefaultIdProvider(self._payment_api_stub, self._in_queue, self._identity.name)
             self.state = ConnectionStates.connected
             self.logger.info("[{}] Node connected to {}:{}".format(self._identity.name, self.host, self.port))
@@ -119,8 +119,8 @@ class PerunNodeConnection(Connection):
                 raise ValueError("[{}] Channel is not set or already closed!".format(self._identity.name))
             self.state = ConnectionStates.disconnecting
             self._executor.shutdown(wait=False)
-            for future in self._futures:
-                await future.shutdown()
+            for thread in self._threads:
+                await thread.shutdown()
             self._channel.close()
             self._in_queue.close()
             await self._in_queue.wait_closed()

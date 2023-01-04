@@ -23,12 +23,12 @@ class PerunSession():
 
     def __init__(
             self, payment_api_stub: PaymentApiStub, in_queue: janus.Queue[Envelope],
-            thread_pool: ThreadPoolExecutor, futures: List, agent_name: str) -> None:
+            thread_pool: ThreadPoolExecutor, threads: List, agent_name: str) -> None:
         self._logger = logging.getLogger(__name__)
         self._payment_api_stub = payment_api_stub
         self._in_queue = in_queue
         self._thread_pool = thread_pool
-        self._futures = futures
+        self._threads = threads
         self._agent_name = agent_name
 
     async def open_session(self, message: PerunGrpcMessage, dialogue: PerunGrpcDialogue, dialogues: PerunGrpcDialogues) -> None:
@@ -57,7 +57,7 @@ class PerunSession():
                     counterparty=resMess.to, dialogues=dialogues, agent_name=self._agent_name)
                 # thread.start()
                 future = self._thread_pool.submit(thread.run)
-                self._futures.append(thread)
+                self._threads.append(thread)
                 self._logger.debug(
                     "[{}] Thread ChannelProposalListener started for session_id {}".format(
                         self._agent_name, osr.session_id))
@@ -105,7 +105,7 @@ class PerunSession():
                     counterparty=resMess.to, agent_name=self._agent_name, channel_id=response.msg_success.opened_pay_ch_info.ch_id, dialogues=dialogues)
                 # thread.start()
                 future = self._thread_pool.submit(thread.run)
-                self._futures.append(thread)
+                self._threads.append(thread)
             if self._in_queue is not None:
                 self._logger.debug("[{}] sending respond_pay_ch_proposal {}".format(self._agent_name, envelope))
                 await self._in_queue.async_q.put(envelope)
