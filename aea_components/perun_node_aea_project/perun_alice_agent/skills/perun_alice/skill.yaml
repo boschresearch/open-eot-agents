@@ -1,0 +1,41 @@
+name: perun_alice
+author: bosch
+version: 0.1.0
+type: skill
+description: The scaffold skill is a scaffold for your own skill implementation.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  __init__.py: QmZCTYTrDzwYbtQXNoaa7XXtaEEjKTNDyHYiREngHM2A3L
+  behaviours.py: QmSmCPvtzMrcQa4Bs5fPEwZ1XtvUUuQEb9FtmAoZKnAG9L
+  dialogues.py: QmRuscw3pJxKJeQGWUhF5T9J1Q8vJuJnqT2gy14NWQcHYX
+  handlers.py: QmNUr1JGXaRfLVxr9mUthKL4tntqyTeHzdUP4pyuWC3iak
+  session.py: QmWbDmbD4ThoXM4brFeUFXksFHUG4ahFZ2fqWhWGnQ2N3o
+  strategy.py: QmNPYpdy5pJkZFsB8uk7dPguQKCbnR6p8Uq8GMxKTGiysE
+fingerprint_ignore_patterns: []
+connections: []
+contracts: []
+protocols: []
+skills: []
+behaviours:
+  perun_alice_behaviour:
+    args:
+      scf: alice/session.yaml
+    class_name: PerunAliceBehaviour
+handlers:
+  perun_handler:
+    args: {}
+    class_name: PerunHandler
+models:
+  perun_dialogues:
+    args: {}
+    class_name: PerunDialogues
+  perun_pay_ch_strategy:
+    args:
+      max_balance: 5
+    class_name: PayChannelStrategy
+  perun_sessions:
+    args: {}
+    class_name: PerunSessions
+dependencies: {}
+is_abstract: false
