@@ -7,11 +7,11 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmZeN1ahocF5Pkmi4qks5e5GfoPzb2aCzLLZkWmjuUg3vW
-  behaviours.py: QmaRWCXD9QwdQPxN1pZe4m4f9VXpyq1xSrqi7k4qhUZo6o
+  behaviours.py: QmYpNT1bd7xn3mD1iUmofXTDM3Mck8bY5aL6VWMBfMQYkM
   dialogues.py: QmXFzqG2SeC8HTGXRH1z1ZJdaPSLvV7y6XiK4PtHy6ixoo
-  handlers.py: QmQ8EvUH38HEBnvSca5jVbbGjkknxbk7Pc6NTSBJX3PQ46
-  session.py: QmULJhJ298Hn7W3LH4F4CwQJBgysScC71sswbcyNrjjgEz
-  strategy.py: QmfNeJUmtn3wYpf1DQwazA7ASscJTB6pPd7XxKujVJw7Qi
+  handlers.py: QmcVQZJtUHPZzSyBDqYt3Ybr9PZr8aAHJLu2J18pHwhE3w
+  session.py: QmeaYJNmfvC4RR7fE1CuiCTmKhm6VujbqT8uKNoRem2zdG
+  strategy.py: Qmed3ZBzUv2WPkNNK6nYXi4oKC9rPWQjaEAhAbNT6MqnT3
 fingerprint_ignore_patterns: []
 connections:
 - bosch/perun_node:0.1.0
@@ -41,4 +41,4 @@ models:
     args: {}
     class_name: PerunSessions
 dependencies: {}
-is_abstract: false
+is_abstract: true

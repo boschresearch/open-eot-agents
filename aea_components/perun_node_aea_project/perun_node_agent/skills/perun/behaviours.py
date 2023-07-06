@@ -9,7 +9,7 @@ from typing import Any, Dict, cast
 from aea.skills.behaviours import OneShotBehaviour, TickerBehaviour
 from packages.bosch.skills.perun.dialogues import PerunDialogues
 from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage
-from packages.bosch.protocols.perun_grpc.grpc_message import CloseSessionReq, GetPeerIdReq, OpenSessionReq
+from packages.bosch.protocols.perun_grpc.grpc_message import BalInfo, BalInfoBal, CloseSessionReq, GetPeerIdReq, OpenPayChReq, OpenSessionReq
 from packages.bosch.skills.perun.session import PerunSession, PerunSessions
 
 PERUN_CONNECTION_ID = "bosch/perun_node:0.1.0"
@@ -82,6 +82,7 @@ class PerunCloseSessionBehaviour(OneShotBehaviour):
 class PerunGetPeerIdBehaviour(OneShotBehaviour):
 
     def __init__(self, **kwargs: Any) -> None:
+        self.perun_connection: str = cast(str, kwargs.pop("connection", PERUN_CONNECTION_ID))
         self.perun_alias: str = cast(str, kwargs.pop("alias", None))
         self.perun_session_id: str = cast(str, kwargs.pop("session_id", None))
         super().__init__(**kwargs)
@@ -100,7 +101,7 @@ class PerunGetPeerIdBehaviour(OneShotBehaviour):
         )
         get_peer_id_request = GetPeerIdReq(alias=self.perun_alias, session_id=self.perun_session_id)
         message, dialogue = perun_dialogues.create(
-            counterparty=PERUN_CONNECTION_ID, performative=PerunGrpcMessage.Performative.REQUEST,
+            counterparty=self.perun_connection, performative=PerunGrpcMessage.Performative.REQUEST,
             type=get_peer_id_request.__class__.__name__, content=bytes(get_peer_id_request))
         self.context.logger.debug("Get peer ID message to be send {}".format(message))
         self.context.outbox.put_message(message=message)
@@ -110,52 +111,94 @@ class PerunGetPeerIdBehaviour(OneShotBehaviour):
         self.context.logger.info("Teardown of PerunGetPeerIdBehaviour...")
 
 
-class PerunAliceBehaviour(TickerBehaviour):
+class PerunOpenChannelBehaviour(OneShotBehaviour):
 
-    BOB = "bob"
-    ALIAS_BOB = "alias_{}".format(BOB)
-
-    def __init__(self, **kwargs: Any):
-        """Initialize the search behaviour."""
-        act_interval = cast(
-            float, kwargs.pop("act_interval", 5)
-        )
-        self.perun_scf: str = cast(str, kwargs.pop("scf", None))
-        self._done = False
-        super().__init__(tick_interval=act_interval, **kwargs)
+    def __init__(self, **kwargs: Any) -> None:
+        self.perun_connection: str = cast(str, kwargs.pop("connection", PERUN_CONNECTION_ID))
+        self.perun_session_id: str = cast(str, kwargs.pop("session_id", None))
+        self.alias_bob: str = cast(str, kwargs.pop("alias_bob", None))
+        self.alice_amount = cast(str, kwargs.pop("alice_amount", None))
+        self.bob_amount = cast(str, kwargs.pop("bob_amount", None))
+        super().__init__(**kwargs)
 
     def setup(self) -> None:
-        """Implement the setup for the behaviour."""
-        self.context.logger.info("Setup of PerunAliceBehaviour...")
-        if self.perun_scf is None:
-            raise ValueError("No session config file is given for Alice!")
+        """Implement the setup."""
+        self.context.logger.info("Setup of PerunOpenChannelBehaviour...")
+        if self.alias_bob is None or self.alice_amount is None or self.bob_amount is None or self.perun_session_id is None:
+            raise ValueError("No alias or session id or amount is given to open a corresponding channel!")
 
     def act(self) -> None:
-        self.context.logger.debug("Act of PerunAliceBehaviour...")
-        if not self._done:
-            perun_sessions = cast(PerunSessions, self.context.perun_sessions)
-            session_id = self._get_key_for_session_config(self.perun_scf, perun_sessions.sessions)
-            if not self.perun_scf is None and session_id is None:
-                self.context.logger.info("Alice is opening session...")
-                self.context.new_behaviours.put(PerunOpenSessionBehaviour(
-                    name="alice_open_session", skill_context=self.context, scf=self.perun_scf))
-            elif not session_id is None and not self.BOB in perun_sessions.sessions.get(session_id).peer_ids.keys():
-                self.context.logger.info("Alice is getting PeerId alias of {}".format(self.BOB))
-                self.context.new_behaviours.put(PerunGetPeerIdBehaviour(
-                    name=self.ALIAS_BOB, skill_context=self.context, alias=self.BOB, session_id=session_id))
-            # elif not session_id is None and self.BOB in perun_sessions.sessions.get(session_id).peer_ids.keys():
-            #     self.context.logger.info("Alice is closing session id {} for config {}".format(
-            #         session_id, self.perun_scf))
-            #     self.context.new_behaviours.put(PerunCloseSessionBehaviour(
-            #         name="alice_close_session", skill_context=self.context, session_id=session_id))
-            #     self._done = True
-
-    def _get_key_for_session_config(self, scf: str, sessions: Dict[str, PerunSession]) -> str:
-        if len(sessions.keys()):
-            for k, v in sessions.items():
-                if v.config_file == scf:
-                    return k
-        return None
+        self.context.logger.info("Creating request to open a channel for alias {} for session_id {} with balance {}:{}".format(
+            self.alias_bob, self.perun_session_id, self.alice_amount, self.bob_amount))
+        perun_dialogues = cast(
+            PerunDialogues, self.context.perun_dialogues
+        )
+        bal1 = [self.alice_amount, self.bob_amount]
+        bal2 = BalInfoBal(bal=bal1)
+        # bal2.bal.append(self.alice_amount)
+        # bal2.bal.append(self.bob_amount)
+        open_bal_info = BalInfo(currencies=['ETH'], parts=['self', self.alias_bob], bals=[bal2])
+        # open_bal_info.bals.append(bal2)
+        open_pay_ch_req = OpenPayChReq(session_id=self.perun_session_id,
+                                       opening_bal_info=open_bal_info, challenge_dur_secs=60)
+        self.context.logger.info("open_pay_ch_req: {}".format(open_pay_ch_req))
+        message, dialogue = perun_dialogues.create(
+            counterparty=self.perun_connection, performative=PerunGrpcMessage.Performative.REQUEST,
+            type=open_pay_ch_req.__class__.__name__, content=bytes(open_pay_ch_req))
+        self.context.logger.debug("[{}] Open channel message to be send {}".format(self.context.agent_name, message))
+        self.context.outbox.put_message(message=message)
 
     def teardown(self) -> None:
-        self.context.logger.info("Teardown of PerunAliceBehaviour...")
+        """Implement the task teardown."""
+        self.context.logger.info("Teardown of PerunOpenChannelBehaviour...")
+
+
+# class PerunAliceBehaviour(TickerBehaviour):
+
+#     BOB = "bob"
+#     ALIAS_BOB = "alias_{}".format(BOB)
+
+#     def __init__(self, **kwargs: Any):
+#         """Initialize the search behaviour."""
+#         act_interval = cast(
+#             float, kwargs.pop("act_interval", 5)
+#         )
+#         self.perun_scf: str = cast(str, kwargs.pop("scf", None))
+#         self._done = False
+#         super().__init__(tick_interval=act_interval, **kwargs)
+
+#     def setup(self) -> None:
+#         """Implement the setup for the behaviour."""
+#         self.context.logger.info("Setup of PerunAliceBehaviour...")
+#         if self.perun_scf is None:
+#             raise ValueError("No session config file is given for Alice!")
+
+#     def act(self) -> None:
+#         self.context.logger.debug("Act of PerunAliceBehaviour...")
+#         if not self._done:
+#             perun_sessions = cast(PerunSessions, self.context.perun_sessions)
+#             session_id = self._get_key_for_session_config(self.perun_scf, perun_sessions.sessions)
+#             if not self.perun_scf is None and session_id is None:
+#                 self.context.logger.info("Alice is opening session...")
+#                 self.context.new_behaviours.put(PerunOpenSessionBehaviour(
+#                     name="alice_open_session", skill_context=self.context, scf=self.perun_scf))
+#             elif not session_id is None and not self.BOB in perun_sessions.sessions.get(session_id).peer_ids.keys():
+#                 self.context.logger.info("Alice is getting PeerId alias of {}".format(self.BOB))
+#                 self.context.new_behaviours.put(PerunGetPeerIdBehaviour(
+#                     name=self.ALIAS_BOB, skill_context=self.context, alias=self.BOB, session_id=session_id))
+#             # elif not session_id is None and self.BOB in perun_sessions.sessions.get(session_id).peer_ids.keys():
+#             #     self.context.logger.info("Alice is closing session id {} for config {}".format(
+#             #         session_id, self.perun_scf))
+#             #     self.context.new_behaviours.put(PerunCloseSessionBehaviour(
+#             #         name="alice_close_session", skill_context=self.context, session_id=session_id))
+#             #     self._done = True
+
+#     def _get_key_for_session_config(self, scf: str, sessions: Dict[str, PerunSession]) -> str:
+#         if len(sessions.keys()):
+#             for k, v in sessions.items():
+#                 if v.config_file == scf:
+#                     return k
+#         return None
+
+#     def teardown(self) -> None:
+#         self.context.logger.info("Teardown of PerunAliceBehaviour...")

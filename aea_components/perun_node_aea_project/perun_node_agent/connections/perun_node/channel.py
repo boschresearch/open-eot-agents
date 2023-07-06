@@ -124,8 +124,8 @@ class ChannelUpdateListener():
         self._logger = logging.getLogger(__name__)
         self._payment_api_stub = payment_api_stub
         self._in_queue = in_queue
-        self._session_id = session_id
-        self._channel_id = channel_id
+        self.session_id = session_id
+        self.channel_id = channel_id
         self._dialogues = dialogues
         self._counterparty = counterparty
         self._agent_name = agent_name
@@ -134,22 +134,22 @@ class ChannelUpdateListener():
     def run(self):
         self._logger.debug(
             "[{}] Starting handle_sub_pay_ch_updates in own ChannelUpdateListener for session_id {} and channel id {}".format(
-                self._agent_name, self._session_id, self._channel_id))
+                self._agent_name, self.session_id, self.channel_id))
         asyncio.run(self.handle_sub_pay_ch_updates())
 
     async def shutdown(self) -> None:
         if not self._shutdown.is_set():
             self._logger.debug(
                 "[{}] Shutdown called for ChannelUpdateListener for session id {} and channel id {}".format(
-                    self._agent_name, self._session_id, self._channel_id))
+                    self._agent_name, self.session_id, self.channel_id))
             self._shutdown.set()
 
     async def handle_sub_pay_ch_updates(self) -> None:
         try:
             self._logger.info(
                 "[{}] Start listening to channel updates for session {} and channel_id {}".format(
-                    self._agent_name, self._session_id, self._channel_id))
-            req = SubpayChUpdatesReq(self._session_id, self._channel_id)
+                    self._agent_name, self.session_id, self.channel_id))
+            req = SubpayChUpdatesReq(self.session_id, self.channel_id)
             iter = EventIterator(self._shutdown)
             ch_upd_resp = self._payment_api_stub.sub_pay_ch_updates(req)
             # merging shutdown and response stream to be able to end loop by setting shutdown event
@@ -160,11 +160,11 @@ class ChannelUpdateListener():
                         break
                     elif not stream_update is False:
                         self._logger.info("[{}] Got channel update for session_id {} and channel_id {}: {}".format(
-                            self._agent_name, self._session_id, self._channel_id, stream_update))
+                            self._agent_name, self.session_id, self.channel_id, stream_update))
                         update = cast(SubPayChUpdatesResp, stream_update)
                         message, dialogue = self._dialogues.create(
                             counterparty=self._counterparty, performative=PerunGrpcMessage.Performative.PAYCHRESP,
-                            session_id=self._session_id, type=update.__class__.__name__,
+                            session_id=self.session_id, type=update.__class__.__name__,
                             content=bytes(update))
                         envelope = Envelope(to=message.to, sender=message.sender, message=message)
                         self._logger.debug("[{}] handle_sub_pay_ch_updates is sending {}".format(
@@ -180,16 +180,16 @@ class ChannelUpdateListener():
                                     update.error.code == ErrorCode.ErrResourceExists:
                                 self._logger.error(
                                     "[{}] Retrieved error {} in channel update for session id {} and channel {}, ending listener.".format(
-                                        self._agent_name, update.error.code, self._session_id, self._channel_id))
+                                        self._agent_name, update.error.code, self.session_id, self.channel_id))
                                 await self.shutdown()
                         else:
                             # no error, so check for closed state and then close listener by using break
                             if update.notify.type != None and update.notify.type == SubPayChUpdatesRespNotifyChUpdateType.closed:
                                 self._logger.info(
                                     "[{}] Retrieved closed, stop listener for session id {} and channel {}".format(
-                                        self._agent_name, self._session_id, self._channel_id))
+                                        self._agent_name, self.session_id, self.channel_id))
                                 await self.shutdown()
         finally:
             self._logger.info(
                 "[{}] Ended listening to channel updates for session {} and channel {}".format(
-                    self._agent_name, self._session_id, self._channel_id))
+                    self._agent_name, self.session_id, self.channel_id))

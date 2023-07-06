@@ -175,6 +175,12 @@ class PerunNodeConnection(Connection):
                 await self._perun_id_provider.add_peer_id(message, dialogue)
             elif message.type == 'GetPeerIdReq':
                 await self._perun_id_provider.get_peer_id(message, dialogue)
+            elif message.type == 'OpenPayChReq':
+                await self._perun_session.open_channel(message, dialogue, self._dialogues)
+            elif message.type == 'SendPayChUpdateReq':
+                await self._perun_session.send_pay_ch_update(message, dialogue, self._dialogues)
+            elif message.type == 'ClosePayChReq':
+                await self._perun_session.close_channel(message, dialogue, self._dialogues)
 
     async def receive(self, *args: Any, **kwargs: Any) -> Optional[Envelope]:
         """

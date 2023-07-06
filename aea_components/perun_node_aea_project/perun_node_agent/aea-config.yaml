@@ -4,7 +4,8 @@ version: 0.1.0
 license: Apache-2.0
 description: ''
 aea_version: '>=1.1.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  publish-local.sh: QmNQpKzrZBDxjiVPMWTZVvGydxCP8MYXMKT4vwBXNhoqck
 fingerprint_ignore_patterns: []
 connections:
 - bosch/perun_node:0.1.0
