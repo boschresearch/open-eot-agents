@@ -48,8 +48,8 @@ class PerunHandler(Handler):
             return
         if perun_msg.performative is PerunGrpcMessage.Performative.REQUEST:
             self.context.logger.warning(
-                "cannot handle perun message of performative={} in dialogue={}.".format(
-                    perun_msg.performative, perun_dialogue
+                "cannot handle perun message of performative={} in dialogue={}. Error message: {}".format(
+                    perun_msg.performative, perun_dialogue, MsgError().parse(perun_msg.content)
                 )
             )
         # checking and handling RESPONSE and PAYCHRESP performatives.
@@ -61,11 +61,17 @@ class PerunHandler(Handler):
                 self.handle_close_session_resp(perun_msg, perun_dialogue)
             elif perun_msg.type == 'GetPeerIdRespMsgSuccess':
                 self.handle_get_peer_id_resp(perun_msg, perun_dialogue)
+            elif perun_msg.type == 'OpenPayChRespMsgSuccess':
+                self.handle_open_pay_ch_resp(perun_msg, perun_dialogue)
+            elif perun_msg.type == 'SendPayChUpdateRespMsgSuccess':
+                self.handle_send_pay_ch_upd_resp(perun_msg, perun_dialogue)
+            elif perun_msg.type == 'ClosePayChRespMsgSuccess':
+                self.handle_close_channel_resp(perun_msg, perun_dialogue)
             else:
                 # TODO: Handle error message
                 self.context.logger.warning(
-                    "cannot handle perun message of performative={} in dialogue={}.".format(
-                        perun_msg.performative, perun_dialogue
+                    "cannot handle perun message of performative={} in dialogue={} Error Message: {}".format(
+                        perun_msg.performative, perun_dialogue, perun_msg.content
                     )
                 )
         elif perun_msg.performative is PerunGrpcMessage.Performative.PAYCHRESP:
@@ -131,6 +137,60 @@ class PerunHandler(Handler):
         else:
             self.context.logger.error("No corresponding request {} found for response {}".format(request, response))
 
+    def handle_open_pay_ch_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
+        response = OpenPayChRespMsgSuccess().parse(perun_msg.content)
+        # check for error in response
+        if betterproto.which_one_of(response, "response")[0] == "error":
+            self.context.logger.error("Error retrieved at open_pay_ch: {}".format(response.error))
+            # handle error for notif already existent or session id not existent
+        else:  # notify is set
+            last_message = cast(Optional[PerunGrpcMessage], perun_dialogue.last_outgoing_message)
+            if last_message is not None and last_message.performative == PerunGrpcMessage.Performative.REQUEST and last_message.type == 'OpenPayChReq':
+                perun_sessions = cast(PerunSessions, self.context.perun_sessions)
+                pay_ch_req = OpenPayChReq().parse(last_message.content)
+                session = perun_sessions.sessions[pay_ch_req.session_id]
+                session.channels.update({response.opened_pay_ch_info.ch_id:
+                                        response.opened_pay_ch_info})
+                self.context.logger.info("Added channel info to session {}: {}".format(
+                    pay_ch_req.session_id, response.opened_pay_ch_info))
+            else:
+                self.context.logger.error("No corresponding request {} found for response {}".format(
+                    last_message, response))
+
+    def handle_close_channel_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
+        response = ClosePayChRespMsgSuccess().parse(perun_msg.content)
+        # check for error in response
+        if betterproto.which_one_of(response, "response")[0] == "error":
+            self.context.logger.error("Error retrieved at open_pay_ch: {}".format(response.error))
+            # handle error for notif already existent or session id not existent
+        else:  # notify is set
+            last_message = cast(Optional[PerunGrpcMessage], perun_dialogue.last_outgoing_message)
+            if last_message is not None and last_message.performative == PerunGrpcMessage.Performative.REQUEST and last_message.type == 'ClosePayChReq':
+                perun_sessions = cast(PerunSessions, self.context.perun_sessions)
+                close_ch_req = ClosePayChReq().parse(last_message.content)
+                session = perun_sessions.sessions[close_ch_req.session_id]
+                session.channels.pop(close_ch_req.ch_id, None)
+                self.context.logger.info("Removed channel info from session {}: {}".format(
+                    close_ch_req.session_id, close_ch_req.ch_id))
+            else:
+                self.context.logger.error("No corresponding request {} found for response {}".format(
+                    last_message, response))
+
+    def handle_send_pay_ch_upd_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
+        response: SendPayChUpdateRespMsgSuccess = SendPayChUpdateRespMsgSuccess().parse(perun_msg.content)
+        last_message = cast(Optional[PerunGrpcMessage], perun_dialogue.last_outgoing_message)
+        if last_message is not None and last_message.performative == PerunGrpcMessage.Performative.REQUEST and last_message.type == 'SendPayChUpdateReq':
+            perun_sessions = cast(PerunSessions, self.context.perun_sessions)
+            pay_ch_req = SendPayChUpdateReq().parse(last_message.content)
+            session = perun_sessions.sessions[pay_ch_req.session_id]
+            session.channels.update({response.updated_pay_ch_info.ch_id:
+                                    response.updated_pay_ch_info})
+            self.context.logger.info("Updated channel info to session {}: {}".format(
+                pay_ch_req.session_id, response.updated_pay_ch_info))
+        else:
+            self.context.logger.error("No corresponding request {} found for response {}".format(
+                last_message, response))
+
     def handle_pay_ch_prop_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
         proposal = SubPayChProposalsResp().parse(perun_msg.content)
         # check for error in proposal
@@ -150,6 +210,19 @@ class PerunHandler(Handler):
                                                target_message=perun_msg)
             if resMess is not None:
                 self.context.outbox.put_message(resMess)
+
+    def handle_pay_ch_prop_resp_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
+        perun_sessions = cast(PerunSessions, self.context.perun_sessions)
+        response = RespondPayChProposalResp().parse(perun_msg.content)
+        last_message = cast(Optional[PerunGrpcMessage], perun_dialogue.last_outgoing_message)
+        # if success and last message was accept open corresponding entry in session for payment channel
+        if betterproto.which_one_of(response, "response")[0] == "msg_success" and \
+                last_message.performative == PerunGrpcMessage.Performative.ACCEPT:
+            session = perun_sessions.sessions[perun_msg.session_id]
+            session.channels.update({response.msg_success.opened_pay_ch_info.ch_id:
+                                    response.msg_success.opened_pay_ch_info})
+            self.context.logger.info("Added channel info to session {}: {}".format(
+                perun_msg.session_id, response.msg_success.opened_pay_ch_info))
 
     def handle_pay_ch_prop_resp_resp(self, perun_msg: PerunGrpcMessage, perun_dialogue: PerunDialogue) -> None:
         perun_sessions = cast(PerunSessions, self.context.perun_sessions)

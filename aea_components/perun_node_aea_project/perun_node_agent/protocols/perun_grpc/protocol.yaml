@@ -7,12 +7,14 @@ description: A protocol for Perun GRPC requests and responses.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmWeUwYY32Q4ZtM4KiWRijM8cD9KjAV574tgk7mV17qsVW
-  dialogues.py: Qmd8PsSNRmxL1cEayoouEMDy9fTxFUEMzL41C6E57rP3ax
-  message.py: QmZtTvMFPfq3bvsp5wAV6LXxWiPYTFRLW8eHAUfLymf7Lq
+  README.md: QmNvutqXuCxr5RzKkqsKhNT2KVv9SP9MM2Vs13N99JRfAK
+  __init__.py: QmYCj71HGWxoujFX4qxwMbtx9dFCjego2oSKXtsTb7ysQn
+  dialogues.py: QmZPatDtpJFVgY9mj5rtTH4SXsiFVR3f5kJjuVNURskfrg
+  grpc_message.py: QmTk7k8m7Gmbr2egfGPbAy87kJ1mqiU4maTPQXszjrqUDn
+  message.py: QmST4mhnVaLeVfiyCa8FTSnbM9T1KCpeRQf5PkS6j6Q12z
   perun_grpc.proto: QmRhnjUxYLbwh4e1bHmXheEqAa2dGe4vyUo7NwKKTEANj8
-  perun_grpc_pb2.py: QmXzSkCbTRyrYWyRs66QSAaEctPD5yB3Bsj9sQ5fF7nruC
-  serialization.py: QmPZ3xx3KVmss19xK9aFnMKY6xLf6mxjA5D6u3YoCVt7nw
+  perun_grpc_pb2.py: QmTPan9JEARhbeJpbeUk7iGuJ9wcu4i8CMF89tG6sZqAQP
+  serialization.py: QmWpraqRQrmvUMBDBJQV7BqVzkW9WdNVCNNDjJus2GthVv
 fingerprint_ignore_patterns: []
 dependencies:
   protobuf: {}

@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+
 from concurrent.futures import ThreadPoolExecutor
 import logging
 import betterproto
@@ -14,8 +15,8 @@ from packages.bosch.connections.perun_node.channel import ChannelProposalListene
 from packages.bosch.protocols.perun_grpc.dialogues import PerunGrpcDialogue, PerunGrpcDialogues
 
 from packages.bosch.protocols.perun_grpc.grpc_message import (
-    CloseSessionReq, OpenSessionReq, OpenSessionRespMsgSuccess, PaymentApiStub, RespondPayChProposalReq,
-    RespondPayChUpdateReq, SubPayChProposalsResp, SubPayChUpdatesResp)
+    ClosePayChReq, CloseSessionReq, OpenPayChReq, OpenSessionReq, OpenSessionRespMsgSuccess, PaymentApiStub,
+    RespondPayChProposalReq, RespondPayChUpdateReq, SendPayChUpdateReq, SubPayChProposalsResp, SubPayChUpdatesResp)
 from packages.bosch.protocols.perun_grpc.message import PerunGrpcMessage
 
 
@@ -134,3 +135,70 @@ class PerunSession():
                 self._agent_name, envelope))
             if self._in_queue is not None:
                 await self._in_queue.async_q.put(envelope)
+
+    async def open_channel(self, message: PerunGrpcMessage, dialogue: PerunGrpcDialogue, dialogues: PerunGrpcDialogues) -> None:
+        self._logger.debug("[{}] Open channel called with message {}".format(self._agent_name, message))
+        req = OpenPayChReq().parse(message.content)
+        try:
+            response = await self._payment_api_stub.open_pay_ch(req, timeout=float(req.challenge_dur_secs+5))
+            if betterproto.which_one_of(response, "response")[1] != None:
+                resMess = dialogue.reply(
+                    performative=PerunGrpcMessage.Performative.RESPONSE,
+                    target_message=message,
+                    content=bytes(betterproto.which_one_of(response, "response")[1]),
+                    type=betterproto.which_one_of(response, "response")[1].__class__.__name__)
+                envelope = Envelope(to=resMess.to, sender=resMess.sender, message=resMess)
+                if betterproto.which_one_of(response, "response")[0] == "msg_success":
+                    # Open channel listener in case of successfull request
+                    thread = ChannelUpdateListener(
+                        payment_api_stub=self._payment_api_stub, in_queue=self._in_queue, session_id=req.session_id,
+                        counterparty=resMess.to, agent_name=self._agent_name,
+                        channel_id=response.msg_success.opened_pay_ch_info.ch_id, dialogues=dialogues)
+                    future = self._thread_pool.submit(thread.run)
+                    self._threads.append(thread)
+                if self._in_queue is not None:
+                    await self._in_queue.async_q.put(envelope)
+        except Exception as error:
+            self._logger.error("[{}] Error at open_channel: {}".format(self._agent_name, error))
+
+    async def close_channel(self, message: PerunGrpcMessage, dialogue: PerunGrpcDialogue, dialogues: PerunGrpcDialogues) -> None:
+        self._logger.debug("[{}] Close channel called with message {}".format(self._agent_name, message))
+        req = ClosePayChReq().parse(message.content)
+        try:
+            response = await self._payment_api_stub.close_pay_ch(close_pay_ch_req=req, timeout=float(60))
+            if betterproto.which_one_of(response, "response")[1] != None:
+                resMess = dialogue.reply(
+                    performative=PerunGrpcMessage.Performative.RESPONSE,
+                    target_message=message,
+                    content=bytes(betterproto.which_one_of(response, "response")[1]),
+                    type=betterproto.which_one_of(response, "response")[1].__class__.__name__)
+                envelope = Envelope(to=resMess.to, sender=resMess.sender, message=resMess)
+                if betterproto.which_one_of(response, "response")[0] == "msg_success":
+                    # Close channel listener in case of successfull request
+                    for thread in self._threads:
+                        if thread.session_id == req.session_id and thread.channel_id == req.ch_id:
+                            self._logger.debug(
+                                "[{}] Shutdown of ChannelUpdateListener for session {} and channel {}".format(
+                                    self._agent_name, req.session_id, req.ch_id))
+                            await thread.shutdown()
+                if self._in_queue is not None:
+                    await self._in_queue.async_q.put(envelope)
+        except Exception as error:
+            self._logger.error("[{}] Error at close_channel: {}".format(self._agent_name, error))
+
+    async def send_pay_ch_update(self, message: PerunGrpcMessage, dialogue: PerunGrpcDialogue, dialogues: PerunGrpcDialogues) -> None:
+        self._logger.debug("[{}] Send payment channel update called with message {}".format(self._agent_name, message))
+        req = SendPayChUpdateReq().parse(message.content)
+        try:
+            response = await self._payment_api_stub.send_pay_ch_update(send_pay_ch_update_req=req, timeout=60)
+            if betterproto.which_one_of(response, "response")[1] != None:
+                resMess = dialogue.reply(
+                    performative=PerunGrpcMessage.Performative.RESPONSE,
+                    target_message=message,
+                    content=bytes(betterproto.which_one_of(response, "response")[1]),
+                    type=betterproto.which_one_of(response, "response")[1].__class__.__name__)
+                envelope = Envelope(to=resMess.to, sender=resMess.sender, message=resMess)
+                if self._in_queue is not None:
+                    await self._in_queue.async_q.put(envelope)
+        except Exception as error:
+            self._logger.error("[{}] Error at open_channel: {}".format(self._agent_name, error))
